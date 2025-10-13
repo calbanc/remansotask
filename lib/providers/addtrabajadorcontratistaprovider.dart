@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:verfwork/const/env.dart';
 import 'package:verfwork/response/response.dart';
 import 'package:intl/intl.dart';
@@ -9,8 +11,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 
+import '../page/mrz/chile_mrz_parser.dart';
+
 class AddTrabajadorContratistaProvider extends ChangeNotifier {
+
+  final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
   GlobalKey<FormState> formaddkey = GlobalKey<FormState>();
+
   TextEditingController controlladornombre = TextEditingController();
 
   TextEditingController controlladoridentrega = TextEditingController();
@@ -24,6 +31,14 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   TextEditingController controlladoridempresa = TextEditingController();
   TextEditingController controlladorcodigotrabajador = TextEditingController();
 
+
+  String _path='';
+  String get path => _path;
+  set path(String value) {
+    _path = value;
+    notifyListeners();
+  }
+
   String Rut = '';
   String Digito = '';
   String Nombre = '';
@@ -32,9 +47,9 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   String idtrabxcontr = '';
 
   static Database? _database;
-  int cantidad = 0;
-  int _cantidadentregas = 0;
-  int get CantidadEntregas => _cantidadentregas;
+  double cantidad = 0;
+  double _cantidadentregas = 0;
+  double get CantidadEntregas => _cantidadentregas;
 
   bool _validarut = false;
   bool get validarut => _validarut;
@@ -56,7 +71,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  set setCantidadEntregas(int entrega) {
+  set setCantidadEntregas(double entrega) {
     _cantidadentregas = entrega;
     notifyListeners();
   }
@@ -230,10 +245,18 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
       ),
     );
 
-    /*   final db=await database;
-    final res=await db.query('TRABAJADORESXCONTRATISTA',distinct: true,where: 'Qr=?',whereArgs: [qr] );
-    return res.isNotEmpty ?
-          res.map((e) => Trabajador.fromJson(e)).toList()
-          :null;*/
+
   }
+
+  Future<void>procesardatos(String path) async{
+    final input = InputImage.fromFilePath(path);
+    final result = await recognizer.processImage(input);
+    final text = result.text;
+    final parsed = ChileMrzParser.parseFromOcr(text);
+    controlladornombre.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
+    controlladorrut.text=' ${parsed.rutDigits}-${parsed.dv}';
+  }
+
+
+
 }

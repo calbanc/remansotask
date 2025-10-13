@@ -48,9 +48,22 @@ class _optionsScreen extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () async {
                     try {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return VerfrutApp.Dialogalert(
+                            icono: Icons.sync_alt,
+                            mensajecontent:
+                                'Generando excel espere porfavor...',
+                          );
+                        },
+                      );
+
                       await provider.getexcel().then(
                         (value) => createreportexcel(value),
                       );
+
+                      Navigator.of(context).pop();
                       var directory =
                           (await getApplicationDocumentsDirectory()).path;
                       Share.shareXFiles([

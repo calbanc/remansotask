@@ -51,16 +51,16 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   String get IdActividad => _IdActividad;
   bool _swunoauno = false;
 
-  int _totalcantidadentregas = 0;
+  double _totalcantidadentregas = 0;
 
-  int _contador = 0;
-  int get contador => _contador;
+  double _contador = 0;
+  double get contador => _contador;
   set contador(value) {
     _contador = value;
     notifyListeners();
   }
 
-  int get totalcantidadentregas => _totalcantidadentregas;
+  double get totalcantidadentregas => _totalcantidadentregas;
 
   set totalcantidadentregas(value) {
     _totalcantidadentregas = value;
@@ -104,15 +104,15 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   String Nombre = '';
   String Qr = '';
   String _IdCartilla = '';
-  int cantidad = 0;
+  double cantidad = 0;
 
   //List<QrCartillaResponse> _listacartillas=[];
   //List<QrCartillaResponse> get listacartillas=>_listacartillas;
-  int _cantidadentregas = 0;
+  double _cantidadentregas = 0;
 
   String get IdCartilla => _IdCartilla;
 
-  int get CantidadEntregas => _cantidadentregas;
+  double get CantidadEntregas => _cantidadentregas;
   String _fechaultimaactualizacion = '';
 
   String get FechaUltimaactualizacion => _fechaultimaactualizacion;
@@ -216,7 +216,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     return listalocal;
   }
 
-  set setCantidadEntregas(int entrega) {
+  set setCantidadEntregas(double entrega) {
     _cantidadentregas = entrega;
     notifyListeners();
   }
@@ -376,7 +376,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     }
   }
 
-  getcartillasdisponibles() async {
+ Future<void> getcartillasdisponibles() async {
     final now = DateTime.now();
 
     var fecha = DateFormat('dd/MM/yyyy').format(now);
@@ -385,7 +385,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     final List<Map<String, dynamic>> res = await db.rawQuery('''
       SELECT C.*,(SELECT COUNT(_id) FROM BINS WHERE IdAndroidCartilla=C.IdAndroidCartilla ) as CANT_BINS,C.COD_ENV as 'NOM_ENV'
       FROM CARTILLAS C
-      WHERE C.FechaInicio='$fecha' 
+      WHERE C.FechaInicio='$fecha'  and C.HORATERMINO in ('null' ,'00')
       order by C.IdAndroidCartilla desc
       ''');
 
@@ -482,12 +482,12 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     return res;
   }
 
-  Future<int> getcountentrybyid(String IdCartilla) async {
+  Future<double> getcountentrybyid(String IdCartilla) async {
     final db = await database;
     final List<Map<String, dynamic>> res = await db.rawQuery(
-      ''' SELECT IFNULL(MAX( CAST(CANT AS INTEGER)),0) AS CANT FROM CONTADOR_BINS WHERE IdAndroidCartilla='$IdCartilla' ''',
+      ''' SELECT IFNULL(MAX( CAST(CANT AS REAL)),0) AS CANT FROM CONTADOR_BINS WHERE IdAndroidCartilla='$IdCartilla' ''',
     );
-    print(res[0]['CANT']);
+
     return res[0]['CANT'];
   }
 
@@ -753,7 +753,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
   Future<int> updateentry(Entrega entry) async {
     final db = await database;
-    int cantidad = entry.cantidad!;
+    double cantidad = entry.cantidad!;
     int? identrega = entry.identrega;
     String? hora = entry.hora;
     String? idempresa = entry.idempresa == null ? null : entry.idempresa!;
@@ -771,7 +771,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
   Future<int> updatetrabajador(Entrega entry) async {
     final db = await database;
-    int cantidad = entry.cantidad!;
+    double cantidad = entry.cantidad!;
     int? identrega = entry.identrega;
     String? hora = entry.hora;
     String? idempresa = entry.idempresa == null ? null : entry.idempresa!;
@@ -791,8 +791,10 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
   Future<int> updateentrycant(ListadoEntregaResponse entrega) async {
     int identrega = entrega.identrega!;
-    int cantidad = entrega.cantidad!;
-    int nuevacantidad = cantidad - 1;
+    double cantidad = entrega.cantidad!;
+    double nuevacantidad = cantidad - 1;
+
+    nuevacantidad = nuevacantidad < 0 ? 0 : nuevacantidad;
 
     final db = await database;
     final res = await db.rawUpdate('''
@@ -822,7 +824,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     return res;
   }
 
-  updatehoratermino(String idCartilla) async {
+  Future<void>updatehoratermino(String idCartilla) async {
     final hora = DateTime.now();
     final db = await database;
     final res = await db.rawUpdate('''
@@ -830,7 +832,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     ''');
 
     await getcartillasdisponibles();
-    cartillaseleccionada = cartillasdisponibles[0];
+    cartillasdisponibles.isNotEmpty  ?    cartillaseleccionada = cartillasdisponibles[0]:null;
     notifyListeners();
   }
 
@@ -893,10 +895,11 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       SELECT CANT FROM CONTADOR_BINS WHERE IdAndroidCartilla='$idcartilla' 
     ''');
 
-    contador = res3.length > 0 ? res3.first['CANT'] as int : 0;
+    contador = res3.length > 0 ? res3.first['CANT'] as double : 0.0;
 
     var kd = res2.first;
-    totalcantidadentregas = kd['Cantidad'] as int;
+
+    totalcantidadentregas = (kd['Cantidad'] as num).toDouble();
   }
 
   Future<List<Trabajador>?> gettrabajadorbyrut(String rut) async {
