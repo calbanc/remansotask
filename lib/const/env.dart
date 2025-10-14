@@ -8,6 +8,8 @@ abstract class Env {
 
   static final int dbversion =
       int.parse(dotenv.env['DBVERSION']!);
+  static final String versionapp =
+  dotenv.env['VERSIONAPP']??'';
 
 
   static final String msalClientId =

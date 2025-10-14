@@ -48,6 +48,14 @@ class _addTrabajador extends StatelessWidget {
     final _picker = ImagePicker();
     bool _validarut(String? input) {
       if (input == null) return false;
+
+      if (!provider.validarut) {
+        final texto = input.trim();
+        final soloNumeros = RegExp(r'^\d+$');
+        bool re = soloNumeros.hasMatch(texto);
+
+        return re;
+      }
       final raw = input.toUpperCase().replaceAll(RegExp(r'[^0-9K]'), '');
       if (raw.length < 2) return false;
 
@@ -69,7 +77,7 @@ class _addTrabajador extends StatelessWidget {
       final expectedDv = switch (mod) {
         11 => '0',
         10 => 'K',
-        _  => mod.toString(),
+        _ => mod.toString(),
       };
 
       return dv == expectedDv;
@@ -95,7 +103,7 @@ class _addTrabajador extends StatelessWidget {
                     }
                     if (snapshot.data!.isNotEmpty) {
                       List<Trabajador> data = snapshot.data!;
-                
+
                       provider.controlladornombre = TextEditingController(
                         text: data[0].nombre,
                       );
@@ -103,7 +111,7 @@ class _addTrabajador extends StatelessWidget {
                         text: data[0].rut,
                       );
                     }
-                
+
                     return Container();
                   },
                 ),
@@ -141,64 +149,73 @@ class _addTrabajador extends StatelessWidget {
                   ),
                 ),
 
-                if(provider.validarut && provider.path=='')Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 16,
-                  ),
-                  child: GestureDetector(
-                    onTap: () async {
-                      final image = await _picker.pickImage(source: ImageSource.camera);
-                      if (image != null) {
-                        provider.path = image.path;
-                        await provider.procesardatos(image.path);
-                      }
-                    },
-                    child: Container(
-
-                      width: MediaQuery.of(context).size.width,
-                      height: 220,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 16,
+                if (provider.validarut && provider.path == '')
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 16,
+                    ),
+                    child: GestureDetector(
+                      onTap: () async {
+                        final image = await _picker.pickImage(
+                          source: ImageSource.camera,
+                        );
+                        if (image != null) {
+                          provider.path = image.path;
+                          await provider.procesardatos(image.path);
+                        }
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(9),
                         ),
-                        child: Center(child: Text('Toca aqui para tomar foto al reverso del Documento de Identidad ')),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 16,
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Toca aqui para tomar foto al reverso del Documento de Identidad ',
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                provider.path==''? Container():Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 16,
-                  ),
-                  child: GestureDetector(
-                    onTap: () async {
-                      final image = await _picker.pickImage(source: ImageSource.camera);
-                      if (image != null) {
-                        provider.path = image.path;
-                        await provider.procesardatos(image.path);
-                      }
-                    },
-                    child: Container(
-
-                      width: MediaQuery.of(context).size.width,
-                      height: 220,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(9),
+                provider.path == ''
+                    ? Container()
+                    : Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 16,
                       ),
-                      child: Image.file(File(provider.path)),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final image = await _picker.pickImage(
+                            source: ImageSource.camera,
+                          );
+                          if (image != null) {
+                            provider.path = image.path;
+                            await provider.procesardatos(image.path);
+                          }
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 220,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Image.file(File(provider.path)),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -237,7 +254,9 @@ class _addTrabajador extends StatelessWidget {
                     style: TextStyle(fontFamily: 'MontserratR'),
                     controller: provider.controlladornombre,
                     validator: (value) {
-                      return (value == null || value.isEmpty || value.length > 50)
+                      return (value == null ||
+                              value.isEmpty ||
+                              value.length > 50)
                           ? 'Debe ingresar un nombre valido'
                           : null;
                     },
@@ -264,7 +283,9 @@ class _addTrabajador extends StatelessWidget {
                               decimal: true,
                             ),
                             onChanged:
-                                (value) => {provider.cantidad = double.parse(value)},
+                                (value) => {
+                                  provider.cantidad = double.parse(value),
+                                },
                             validator: (value) {
                               return (value == null || value.isEmpty)
                                   ? 'Debe ingresar una cantidad valido'
@@ -306,7 +327,7 @@ class _addTrabajador extends StatelessWidget {
                         FocusScope.of(context).unfocus();
                         if (!provider.isValidateForm()) return;
                         provider.isLoading = true;
-        
+
                         if (provider.controlladorrut.text.contains("-")) {
                           var rut = provider.controlladorrut.text.split("-");
                           provider.controlladorrut.text = rut[0];
@@ -323,7 +344,7 @@ class _addTrabajador extends StatelessWidget {
                           provider.controlladordigito.text =
                               trabajador![0].digito!;
                         }
-        
+
                         final today = DateTime.now();
                         final date = DateFormat('dd/MM/yyyy').format(today);
                         double cantidad = 1;
@@ -332,7 +353,7 @@ class _addTrabajador extends StatelessWidget {
                             provider.controlladorcantidad.text,
                           );
                         }
-        
+
                         Entrega entrega = Entrega(
                           idcartilla: idcartilla.idAndroidCartilla,
                           qr: qr,
@@ -347,28 +368,27 @@ class _addTrabajador extends StatelessWidget {
                               provider.controlladorcodigotrabajador.text,
                           swsincronizado: '0',
                         );
-        
 
-                          await provider.insertentry(entrega);
-        
-                          await TrabajadorxContratistaProvider()
-                              .getcartillasdisponibles();
-                          List<QrCartillaResponse>? fechainiciocartilla =
-                              await provider.getfechainiciobyidcartilla(
-                                idcartilla.idAndroidCartilla!,
-                              );
-                          fechainiciocartilla == null ||
-                                  fechainiciocartilla.length == 0
-                              ? provider.updatehorainicio(
-                                idcartilla.idAndroidCartilla!,
-                              )
-                              : null;
-        
-                          TrabajadorxContratistaProvider().speak(
-                            'Entrega Registrada',
-                          );
-        
-                          Future.microtask(
+                        await provider.insertentry(entrega);
+
+                        await TrabajadorxContratistaProvider()
+                            .getcartillasdisponibles();
+                        List<QrCartillaResponse>? fechainiciocartilla =
+                            await provider.getfechainiciobyidcartilla(
+                              idcartilla.idAndroidCartilla!,
+                            );
+                        fechainiciocartilla == null ||
+                                fechainiciocartilla.length == 0
+                            ? provider.updatehorainicio(
+                              idcartilla.idAndroidCartilla!,
+                            )
+                            : null;
+
+                        TrabajadorxContratistaProvider().speak(
+                          'Entrega Registrada',
+                        );
+                        Navigator.of(context).pop();
+                        /*   Future.microtask(
                             () => {
                               Navigator.pushReplacement(
                                 context,
@@ -378,7 +398,7 @@ class _addTrabajador extends StatelessWidget {
                                 ),
                               ),
                             },
-                          );
+                          ); */
                         //}
                       },
               child: const Text(

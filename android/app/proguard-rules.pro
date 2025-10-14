@@ -1,0 +1,13 @@
+# Reglas ProGuard / R8 para tu app
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.tuempresa.tuapp.** { *; }
+-keep class com.google.gson.stream.** { *; }
+-keepclassmembers class kotlin.Metadata { *; }
+-keep class kotlinx.serialization.** { *; }
+-dontwarn com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
+-dontwarn com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
+-dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions

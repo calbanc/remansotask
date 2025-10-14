@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart';
 import 'package:share_plus/share_plus.dart';
+import '../const/env.dart';
 import '../response/EnvaseResponse.dart';
 import '../response/excel.dart';
 
@@ -114,109 +115,6 @@ class _optionsScreen extends StatelessWidget {
               ),
             ),
 
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 17),
-                child: GestureDetector(
-                  onTap: () async {
-                    bool conectado =
-                        await Connectivity_provider().isOnlineNet();
-                    if (!conectado) {
-                      TrabajadorxContratistaProvider().speak(
-                        'Sin Conexion para sincronizar envases',
-                      );
-                      return;
-                    }
-                    provider.isloading = true;
-                    List<Envase> envases = await provider.getenvases();
-                    await provider.insertenvases(envases);
-
-                    provider.isloading = false;
-                    TrabajadorxContratistaProvider().speak(
-                      'Descarga de envases culminada',
-                    );
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return VerfrutApp.DialogalertIso(
-                          action: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromRGBO(
-                                59,
-                                131,
-                                216,
-                                1,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  12,
-                                ), // <-- Radius
-                              ),
-                            ),
-                            onPressed: () {
-                              provider.isloading = false;
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text(
-                              'Aceptar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'MontserratR',
-                              ),
-                            ),
-                          ),
-                          mensajecontent: 'Envases sincronizados con exito',
-                        );
-                      },
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    height: 70,
-
-                    decoration: BoxDecoration(
-                      color: Color.fromRGBO(255, 0, 0, 0.04),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 50,
-                          decoration: const BoxDecoration(
-                            color: Color.fromRGBO(174, 36, 36, 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child:
-                              provider.isloading
-                                  ? CupertinoActivityIndicator(
-                                    color: Color.fromRGBO(174, 36, 36, 1),
-                                  )
-                                  : Stack(
-                                    children: [
-                                      Center(
-                                        child: SvgPicture.asset(
-                                          'assets/sincronizar.svg',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                        ),
-                        Text(
-                          'Sincronizar Envases',
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 18,
-                          ),
-                        ),
-                        SizedBox(width: 50),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
             Padding(
               padding: const EdgeInsets.only(top: 17),
@@ -391,7 +289,7 @@ class _optionsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Recomendaciones',
+                        'Version ${Env.versionapp}',
                         style: TextStyle(
                           fontFamily: 'MontserratR',
                           fontSize: 18,
