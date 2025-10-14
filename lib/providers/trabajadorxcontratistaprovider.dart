@@ -1010,4 +1010,13 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     cartillaseleccionada = qrcartilla;
     return res;
   }
+  Future<bool>dataavailabletosync()async{
+    final db=await database;
+    final res=await db.query('ENTREGAS',where: 'SwSincronizado=?',whereArgs: ['0']);
+    if(res.isNotEmpty){
+      return true;
+    }else{
+      return false;
+    }
+  }
 }

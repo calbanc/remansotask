@@ -25,129 +25,7 @@ class DashboardMain extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<TrabajadorxContratistaProvider>(context);
 
-    alertdialog(
-      BuildContext context,
-      TrabajadorxContratistaProvider trabajadorcontratisprovider,
-      Cartillaqr qr,
-    ) async {
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) {
-          return VerfrutApp.DialogalertEnvase(
-            mensajecontent:
-                'Elige el tipo y cantidad que mayor se adapte a tus necesidades',
-            action: Form(
-              key: trabajadorcontratisprovider.formalert,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  DropdownMenu(
-                    width: 250,
-                    label: const Text(
-                      'Tipo de Envase',
-                      style: TextStyle(fontFamily: 'MonserratR', fontSize: 15),
-                    ),
-                    hintText: 'Seleccione un envase',
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'MonserratR',
-                    ),
-                    onSelected: (value) {
-                      trabajadorcontratisprovider.cod_env = value.toString();
-                    },
-                    inputDecorationTheme: const InputDecorationTheme(
-                      filled: true,
-                      fillColor: Color.fromRGBO(230, 236, 245, 1),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(18)),
-                        borderSide: BorderSide(
-                          color: Color.fromRGBO(230, 236, 245, 1),
-                          width: 0,
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(18)),
-                        borderSide: BorderSide(
-                          color: Color.fromRGBO(230, 236, 245, 1),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    dropdownMenuEntries:
-                        trabajadorcontratisprovider.listaenvase!
-                            .map(
-                              (e) => DropdownMenuEntry(
-                                value: e.codEnv,
-                                label: e.nomEnv!,
-                              ),
-                            )
-                            .toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    controller: trabajadorcontratisprovider.maxenvController,
-                    style: const TextStyle(fontFamily: 'MontserratR'),
-                    validator: (value) {
-                      return (value == null ||
-                              value.isEmpty ||
-                              value.length > 50)
-                          ? 'Debe ingresar una cantidad validad'
-                          : null;
-                    },
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      labelText: 'Cantidad Maxima de Entregas',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12), // <-- Radius
-                        ),
-                      ),
-                      onPressed: () async {
-                        FocusScope.of(context).unfocus();
-                        if (!trabajadorcontratisprovider
-                            .isValidateFormalert()) {
-                          return;
-                        }
 
-                        qr.codEnv = trabajadorcontratisprovider.cod_env;
-                        qr.maxEnv =
-                            trabajadorcontratisprovider.maxenvController.text;
-
-                        await trabajadorcontratisprovider.insertarqr(qr);
-                        provider.speak('Cartilla registrada correctamente');
-
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text(
-                        'Confirmar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'MontserratR',
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
 
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(
@@ -327,12 +205,10 @@ class DashboardMain extends StatelessWidget {
                             },
                           );
                         } else {
-                          if (qr.idFamilia == '105') {
-                            alertdialog(context, provider, qr);
-                          } else {
+
                             int respuesta = await provider.insertarqr(qr);
                             provider.speak('Cartilla registrada correctamente');
-                          }
+
                         }
                       } else {
                         provider.speak('Fecha de termino concluida');
@@ -544,6 +420,20 @@ class _bottombar extends StatelessWidget {
             ),
           ),
           onPressed: () async {
+            bool result = await provider.dataavailabletosync();
+            if (result) {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return VerfrutApp.Dialogalert(
+                    icono: Icons.warning,
+                    mensajecontent:
+                    'Tiene datos por sincronizar, no puede cerrar cartilla',
+                  );
+                },
+              );
+              return;
+            }
             showDialog(
               context: context,
               builder: (context) {
