@@ -13,7 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart';
 import 'package:share_plus/share_plus.dart';
-import '../const/env.dart';
 import '../response/EnvaseResponse.dart';
 import '../response/excel.dart';
 
@@ -49,22 +48,9 @@ class _optionsScreen extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () async {
                     try {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return VerfrutApp.Dialogalert(
-                            icono: Icons.sync_alt,
-                            mensajecontent:
-                                'Generando excel espere porfavor...',
-                          );
-                        },
-                      );
-
                       await provider.getexcel().then(
                         (value) => createreportexcel(value),
                       );
-
-                      Navigator.of(context).pop();
                       var directory =
                           (await getApplicationDocumentsDirectory()).path;
                       Share.shareXFiles([
@@ -114,7 +100,6 @@ class _optionsScreen extends StatelessWidget {
                 ),
               ),
             ),
-
 
             Padding(
               padding: const EdgeInsets.only(top: 17),
@@ -289,7 +274,7 @@ class _optionsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Version ${Env.versionapp}',
+                        'Recomendaciones',
                         style: TextStyle(
                           fontFamily: 'MontserratR',
                           fontSize: 18,

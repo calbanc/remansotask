@@ -30,14 +30,14 @@ class DBProvider extends ChangeNotifier {
         await db.execute(''' CREATE TABLE CONTADOR_BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
-              CANT REAL                            
+              CANT INTEGER                            
               ) ''');
 
         await db.execute(''' CREATE TABLE BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               COD_BINS TEXT,
-              CANT REAL,
+              CANT INTEGER,
               COD_ENV TEXT,
               SW_SINCRONIZADO TEXT
               
@@ -80,7 +80,8 @@ class DBProvider extends ChangeNotifier {
             ''');
 
         await db.execute('''
-            CREATE TABLE TRABAJADORESXCONTRATISTA(              
+            CREATE TABLE TRABAJADORESXCONTRATISTA(
+              
               IdEmpresa TEXT,
               Rut TEXT,
               Digito TEXT,
@@ -96,7 +97,7 @@ class DBProvider extends ChangeNotifier {
               IdEntrega integer primary key,
               IdAndroidCartilla TEXT,
               Qr TEXT,
-              Cantidad REAL,
+              Cantidad integer,
               Fecha TEXT,
               Hora TEXT,
               IdTrabXContratista TEXT,
@@ -124,28 +125,15 @@ class DBProvider extends ChangeNotifier {
       onUpgrade: (Database db, int olversion, int newverion) async {
         if (olversion < newverion) {
 
-          final result1 = await db.rawQuery("PRAGMA table_info(CARTILLAS);");
-          final hasMAXENV = result1.any((column) =>
-          column['name'] == 'MAX_ENV');
-          final hasCantMaxEnv = result1.any((column) =>
-          column['name'] == 'CantMaxEnv');
-          if (!hasMAXENV) {
-            hasCantMaxEnv ? null : await db.execute(
-                "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
-          } else {
-            await db.execute("ALTER TABLE CARTILLAS DROP COLUMN MAX_ENV");
-            hasCantMaxEnv ? null : await db.execute(
-                "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
-          }
-
           await db.execute(''' DROP TABLE IF EXISTS CUARTELES ''');
           await db.execute(''' DROP TABLE IF EXISTS MAESTRO_LABORES ''');
           await db.execute(''' DROP TABLE IF EXISTS ENVASE ''');
+
           await db.execute(''' CREATE  TABLE IF NOT EXISTS BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               COD_BINS TEXT,
-              CANT REAL,
+              CANT INTEGER,
               COD_ENV,
               SW_SINCRONIZADO TEXT
               
@@ -156,70 +144,21 @@ class DBProvider extends ChangeNotifier {
               CANT INTEGER                            
               ) ''');
 
-
-          if (olversion < 5) {
-            newverion==5 ? await db.execute( ''' DROP TABLE BINS '''):null;
-            newverion==5 ? await db.execute( ''' DROP TABLE CONTADOR_BINS '''):null;
-
-            await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
-                      _id INTEGER PRIMARY KEY AUTOINCREMENT,
-                      IdAndroidCartilla TEXT,
-                      CANT REAL                            
-                      ) ''');
-            await db.execute(''' CREATE TABLE IF NOT EXISTS BINS(
-                      _id INTEGER PRIMARY KEY AUTOINCREMENT,
-                      IdAndroidCartilla TEXT,
-                      COD_BINS TEXT,
-                      CANT REAL,
-                      COD_ENV TEXT,
-                      SW_SINCRONIZADO TEXT
-                      
-                      ) ''');
-          }
-
-          await db.transaction((txn) async {
-
-              await txn.execute('''
-                  CREATE TABLE ENTREGAS_tmp(
-                    IdEntrega INTEGER PRIMARY KEY,
-                    IdAndroidCartilla TEXT,
-                    Qr TEXT,
-                    Cantidad REAL,            
-                    Fecha TEXT,
-                    Hora TEXT,
-                    IdTrabXContratista TEXT,
-                    IdEmpresa TEXT,
-                    Rut TEXT,
-                    Digito TEXT,
-                    Nombre TEXT,
-                    SwSincronizado TEXT
-                  );
-                ''');
-
-              // 2) Copiar datos (con CAST por si acaso)
-              await txn.execute('''
-                  INSERT INTO ENTREGAS_tmp (
-                    IdEntrega, IdAndroidCartilla, Qr, Cantidad, Fecha, Hora,
-                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
-                  )
-                  SELECT
-                    IdEntrega, IdAndroidCartilla, Qr, CAST(Cantidad AS REAL), Fecha, Hora,
-                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
-                  FROM ENTREGAS;
-                ''');
-
-              // 3) Borrar tabla vieja
-              await txn.execute('DROP TABLE ENTREGAS;');
-
-              // 4) Renombrar la temporal
-              await txn.execute('ALTER TABLE ENTREGAS_tmp RENAME TO ENTREGAS;');
-              });
-
+          final result1 = await db.rawQuery("PRAGMA table_info(CARTILLAS);");
+          final hasMAXENV = result1.any((column) => column['name'] == 'MAX_ENV');
+          final hasCantMaxEnv = result1.any((column) => column['name'] == 'CantMaxEnv');
+          if (!hasMAXENV) {
+            hasCantMaxEnv ? null: await db.execute("ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
+          }else{
+            await db.execute("ALTER TABLE CARTILLAS DROP COLUMN MAX_ENV");
+            hasCantMaxEnv ? null: await db.execute("ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
           }
 
 
+          // you can execute drop table and create table
 
         }
+      },
     );
   }
 

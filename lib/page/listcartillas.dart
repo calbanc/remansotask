@@ -26,7 +26,7 @@ class _ListCartillaState extends State<ListCartilla> {
   void initState() {
     // TODO: implement initState
     fechainicio = date;
-
+    print(fechainicio);
   }
 
   @override

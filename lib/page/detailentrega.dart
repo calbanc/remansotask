@@ -35,7 +35,7 @@ class _detailentregaState extends State<_detailentrega> {
   String nombre = '';
   String digito = '';
   String qr = '';
-  double cantidad = 0.0;
+  int cantidad = 0;
   String idcartilla = '';
   TextEditingController controlladoridentrega = TextEditingController();
   TextEditingController controlladorcartilla = TextEditingController();
@@ -68,7 +68,7 @@ class _detailentregaState extends State<_detailentrega> {
     identrega = widget.listado.identrega.toString();
     qr = widget.listado.qr.toString();
     ruttrabajador = widget.listado.rut.toString();
-    cantidad = double.parse(widget.listado.cantidad.toString());
+    cantidad = int.parse(widget.listado.cantidad.toString());
     nombre = widget.listado.nombre.toString();
     digito = widget.listado.digito!;
     idcartilla = widget.listado.idcartilla.toString();
@@ -84,7 +84,7 @@ class _detailentregaState extends State<_detailentrega> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new),
           onPressed: () async {
-
+            List<Cartillaqr> lista =
                 await trabajadorcontratisprovider.getcartillasdisponibles();
 
             List<Cartillaqr> seleccionado = await trabajadorcontratisprovider
@@ -393,7 +393,7 @@ class _detailentregaState extends State<_detailentrega> {
 
                           rut: controlladorrut.text,
                           qr: controlladorqr.text,
-                          cantidad: double.parse(controlladorcantidad.text),
+                          cantidad: int.parse(controlladorcantidad.text),
                           fecha: fecha,
                           hora: hora.toString(),
                           swsincronizado: '0',
@@ -418,7 +418,7 @@ class _detailentregaState extends State<_detailentrega> {
                           fontSize: 16.0,
                         );
 
-
+                        List<Cartillaqr> lista =
                             await trabajadorcontratisprovider
                                 .getcartillasdisponibles();
 
@@ -491,7 +491,7 @@ class _detailentregaState extends State<_detailentrega> {
                           textColor: Colors.black,
                           fontSize: 16.0,
                         );
-
+                        List<Cartillaqr> lista =
                             await trabajadorcontratisprovider
                                 .getcartillasdisponibles();
 

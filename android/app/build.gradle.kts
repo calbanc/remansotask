@@ -26,8 +26,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 25
         targetSdk = flutter.targetSdkVersion
-        versionCode = 25
-        versionName = "25"
+        versionCode = 1
+        versionName = "1.1"
     }
 
     buildTypes {
@@ -35,18 +35,7 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
-    }
-    dependencies {
-
-        implementation("com.google.mlkit:text-recognition-korean:16.0.1")
-        implementation("com.google.mlkit:text-recognition:16.0.0")
     }
 }
 

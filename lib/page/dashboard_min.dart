@@ -1,8 +1,5 @@
 import 'dart:ui';
 
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
-    as googlekit;
-import 'package:image_picker/image_picker.dart';
 import 'package:verfwork/page/addtrabajador.dart';
 import 'package:verfwork/page/detailworker.dart';
 import 'package:verfwork/page/options_screen.dart';
@@ -152,75 +149,6 @@ class DashboardMain extends StatelessWidget {
       );
     }
 
-    Future<String?> _showActionSheet(BuildContext context) async {
-      return await showCupertinoModalPopup<String>(
-        context: context,
-        builder:
-            (BuildContext context) => CupertinoActionSheet(
-              title: const Text('Opciones'),
-              actions: <CupertinoActionSheetAction>[
-                CupertinoActionSheetAction(
-                  onPressed: () async {
-                    final String qr = await VerfrutApp().scanqr(context);
-                    Navigator.pop(context, qr);
-
-                    //Navigator.pop(context, 'camera'); // devuelve la opción
-                  },
-                  child: const Text(
-                    'Scanear qr',
-                    style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
-                  ),
-                ),
-                CupertinoActionSheetAction(
-                  onPressed: () async {
-                    final picker = ImagePicker();
-                    final XFile? file = await picker.pickImage(
-                      source: ImageSource.gallery,
-                    );
-                    if (file == null) return;
-                    final scanner = googlekit.BarcodeScanner(
-                      formats: [
-                        googlekit.BarcodeFormat.qrCode,
-                      ], // fuerza solo QR
-                    );
-
-                    final input = googlekit.InputImage.fromFilePath(file.path);
-                    final barcodes = await scanner.processImage(input);
-
-                    if (barcodes.isEmpty) {
-                      Navigator.pop(context, '');
-                      return;
-                    }
-                    final String? raw = barcodes.first.rawValue;
-                    Navigator.pop(context, raw);
-                  },
-                  child: const Text(
-                    'Seleccionar Qr',
-                    style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
-                  ),
-                ),
-                CupertinoActionSheetAction(
-                  isDestructiveAction: true,
-                  onPressed: () {
-                    Navigator.pop(
-                      context,
-                      'cancelar',
-                    ); // puedes devolver null si prefieres
-                  },
-                  child: const Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: 'MontserratR',
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-      );
-    }
-
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(
         title: 'FrutApp Job',
@@ -314,7 +242,6 @@ class DashboardMain extends StatelessWidget {
                   style: TextStyle(fontFamily: 'MontserratR', fontSize: 20),
                 ),
               ),
-
               _cartillasCuarteles(provider: provider),
 
               Container(
@@ -367,67 +294,56 @@ class DashboardMain extends StatelessWidget {
                       ),
                     ),
                     onPressed: () async {
-                      try {
-                        String str = await _showActionSheet(context) ?? '';
+                      String str = await VerfrutApp().scanqr(context);
+                      var entries = str
+                          .substring(1, str.length - 1)
+                          .split(RegExp(r',\s?'))
+                          .map((e) => e.split(RegExp(r':\s?')))
+                          .map((e) => MapEntry(e.first, e.last));
+                      var result = Map.fromEntries(entries);
+                      Cartillaqr qr = Cartillaqr.fromMap(result);
 
-                        var entries = str
-                            .substring(1, str.length - 1)
-                            .split(RegExp(r',\s?'))
-                            .map((e) => e.split(RegExp(r':\s?')))
-                            .map((e) => MapEntry(e.first, e.last));
-                        var result = Map.fromEntries(entries);
-                        Cartillaqr qr = Cartillaqr.fromMap(result);
+                      final datefechainicio = DateFormat(
+                        'dd/MM/yy',
+                      ).parse(qr.fechainicio!);
+                      final now = DateFormat('dd/MM/yy').format(DateTime.now());
+                      final fechainicio = DateFormat(
+                        'dd/MM/yy',
+                      ).format(datefechainicio);
 
-                        final datefechainicio = DateFormat(
-                          'dd/MM/yy',
-                        ).parse(qr.fechainicio!);
-                        final now = DateFormat(
-                          'dd/MM/yy',
-                        ).format(DateTime.now());
-                        final fechainicio = DateFormat(
-                          'dd/MM/yy',
-                        ).format(datefechainicio);
-
-                        if (now.compareTo(fechainicio) == 0) {
-                          List<Cartillaqr> respuesta = await provider
-                              .consultaqr(qr);
-                          if (respuesta.length > 0) {
-                            provider.speak('Cartilla ya registrada');
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return VerfrutApp.Dialogalert(
-                                  icono: Icons.cancel,
-                                  mensajecontent: 'Cartilla ya registrada',
-                                );
-                              },
-                            );
-                          } else {
-                            int respuesta = await provider.insertarqr(qr);
-                            provider.speak('Cartilla registrada correctamente');
-                          }
-                        } else {
-                          provider.speak('Fecha de termino concluida');
+                      if (now.compareTo(fechainicio) == 0) {
+                        List<Cartillaqr> respuesta = await provider.consultaqr(
+                          qr,
+                        );
+                        if (respuesta.length > 0) {
+                          provider.speak('Cartilla ya registrada');
                           showDialog(
                             context: context,
                             builder: (context) {
                               return VerfrutApp.Dialogalert(
                                 icono: Icons.cancel,
-                                mensajecontent: 'Fecha de termino concluida',
+                                mensajecontent: 'Cartilla ya registrada',
                               );
                             },
                           );
+                        } else {
+                          if (qr.idFamilia == '105') {
+                            alertdialog(context, provider, qr);
+                          } else {
+                            int respuesta = await provider.insertarqr(qr);
+                            provider.speak('Cartilla registrada correctamente');
+                          }
                         }
-                      } catch (e) {
+                      } else {
+                        provider.speak('Fecha de termino concluida');
                         showDialog(
                           context: context,
-                          builder:
-                              (BuildContext context) => CupertinoAlertDialog(
-                                title: Text("Qr Invalido"),
-                                content: Text(
-                                  "Estimado usuario QR escaneado no es valido, fecha de termino ya concluida $e",
-                                ),
-                              ),
+                          builder: (context) {
+                            return VerfrutApp.Dialogalert(
+                              icono: Icons.cancel,
+                              mensajecontent: 'Fecha de termino concluida',
+                            );
+                          },
                         );
                       }
                     },
@@ -498,7 +414,7 @@ class DashboardMain extends StatelessWidget {
                               ),
                             },
                           );
- */
+*/
 
                           final result = await Navigator.push(
                             context,
@@ -585,7 +501,7 @@ class DashboardMain extends StatelessWidget {
                     ),
 
                     Text(
-                      'Entregas: ${provider.totalcantidadentregas.toStringAsFixed(2)}  ',
+                      'Entregas: ${provider.totalcantidadentregas.toString()}  ',
                       style: TextStyle(fontFamily: 'MontserratR', fontSize: 12),
                     ),
                   ],
@@ -628,21 +544,6 @@ class _bottombar extends StatelessWidget {
             ),
           ),
           onPressed: () async {
-            bool result = await provider.dataavailabletosync();
-            if (result) {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return VerfrutApp.Dialogalert(
-                    icono: Icons.warning,
-                    mensajecontent:
-                        'Tiene datos por sincronizar, no puede cerrar cartilla',
-                  );
-                },
-              );
-              return;
-            }
-
             showDialog(
               context: context,
               builder: (context) {
@@ -656,28 +557,12 @@ class _bottombar extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
                       ),
-                      onPressed: () async {
-                        await provider.updatehoratermino(
+                      onPressed: () {
+                        provider.updatehoratermino(
                           provider.cartillaseleccionada!.idAndroidCartilla!,
                         );
                         provider.speak('Cartilla cerrada correctamente');
-
                         Navigator.pop(context);
-                        if (provider.cartillasdisponibles.isEmpty) {
-                          Future.microtask(
-                            () => {
-                              Navigator.pushReplacement(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (_, __, ___) => Login(),
-                                  transitionDuration: const Duration(
-                                    seconds: 3,
-                                  ),
-                                ),
-                              ),
-                            },
-                          );
-                        }
                       },
                       child: const Text(
                         'Cerrar',
@@ -732,6 +617,133 @@ class _cartillasCuarteles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    alertdialog(
+      BuildContext context,
+      TrabajadorxContratistaProvider trabajadorcontratisprovider,
+      Cartillaqr qr,
+    ) async {
+      // trabajadorcontratisprovider.maxenvController.text=qr.maxEnv!.isEmpty ? '' : qr.maxEnv!;
+
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          return VerfrutApp.DialogalertEnvase(
+            mensajecontent:
+                'Elige el tipo y cantidad que mayor se adapte a tus necesidades',
+            action: Form(
+              key: trabajadorcontratisprovider.formalert,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  DropdownMenu(
+                    width: 250,
+                    label: const Text(
+                      'Tipo de Envase',
+                      style: TextStyle(fontFamily: 'MonserratR', fontSize: 15),
+                    ),
+                    hintText: 'Seleccione un envase',
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'MonserratR',
+                    ),
+                    onSelected: (value) {
+                      trabajadorcontratisprovider.cod_env = value.toString();
+                    },
+                    inputDecorationTheme: const InputDecorationTheme(
+                      filled: true,
+                      fillColor: Color.fromRGBO(230, 236, 245, 1),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(18)),
+                        borderSide: BorderSide(
+                          color: Color.fromRGBO(230, 236, 245, 1),
+                          width: 0,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(18)),
+                        borderSide: BorderSide(
+                          color: Color.fromRGBO(230, 236, 245, 1),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    dropdownMenuEntries:
+                        trabajadorcontratisprovider.listaenvase!
+                            .map(
+                              (e) => DropdownMenuEntry(
+                                value: e.codEnv,
+                                label: e.nomEnv!,
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    controller: trabajadorcontratisprovider.maxenvController,
+                    style: const TextStyle(fontFamily: 'MontserratR'),
+                    validator: (value) {
+                      return (value == null ||
+                              value.isEmpty ||
+                              value.length > 50)
+                          ? 'Debe ingresar una cantidad validad'
+                          : null;
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      labelText: 'Cantidad Maxima de Entregas',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // <-- Radius
+                        ),
+                      ),
+                      onPressed: () async {
+                        FocusScope.of(context).unfocus();
+                        if (!trabajadorcontratisprovider
+                            .isValidateFormalert()) {
+                          return;
+                        }
+
+                        qr.codEnv = trabajadorcontratisprovider.cod_env;
+                        qr.maxEnv =
+                            trabajadorcontratisprovider.maxenvController.text;
+
+                        await trabajadorcontratisprovider.updateenvcartilla(qr);
+                        trabajadorcontratisprovider.formalert.currentState!
+                            .reset();
+
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        'Confirmar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'MontserratR',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.23,
@@ -762,6 +774,16 @@ class _cartillasCuarteles extends StatelessWidget {
               onTap: () async {
                 provider.cartillaseleccionada =
                     provider.cartillasdisponibles[index];
+
+                /* if ((provider.cartillaseleccionada!.codEnv!.isEmpty ||
+                        provider.cartillaseleccionada!.codEnv == 'null') &&
+                    provider.listaenvase.isNotEmpty) {
+                  alertdialog(
+                    context,
+                    provider,
+                    provider.cartillaseleccionada!,
+                  );
+                } */
               },
               child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.18,
@@ -810,7 +832,23 @@ class _cartillasCuarteles extends StatelessWidget {
                             provider.cartillasdisponibles[index].idFamilia ==
                                     '105'
                                 ? IconButton(
-                                  onPressed: () async {},
+                                  onPressed: () async {
+                                    if ((provider
+                                                .cartillaseleccionada!
+                                                .codEnv!
+                                                .isNotEmpty ||
+                                            provider
+                                                    .cartillaseleccionada!
+                                                    .codEnv !=
+                                                'null') &&
+                                        provider.listaenvase.isNotEmpty) {
+                                      alertdialog(
+                                        context,
+                                        provider,
+                                        provider.cartillaseleccionada!,
+                                      );
+                                    }
+                                  },
                                   icon: Icon(
                                     Icons.edit_outlined,
                                     size: 20,
@@ -965,21 +1003,21 @@ class _listadoentregas extends StatelessWidget {
                         nombre,
                         style: const TextStyle(
                           fontFamily: 'MontserratR',
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                       ),
                       Text(
                         'Entregas: $entregas',
                         style: const TextStyle(
                           fontFamily: 'MontserratR',
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                       ),
                       Text(
                         labor,
                         style: const TextStyle(
                           fontFamily: 'MontserratR',
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -1000,7 +1038,7 @@ class _listadoentregas extends StatelessWidget {
                       provider.speak('Entrega eliminada');
                       // add desired output
                     } else if (value == "edit") {
-                      await Navigator.push(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
@@ -1008,10 +1046,6 @@ class _listadoentregas extends StatelessWidget {
                                 worker: provider.listaentregas[index],
                               ),
                         ),
-                      );
-
-                      await provider.listadoentregas(
-                        provider.listaentregas[index].idcartilla!,
                       );
 
                       // add desired output
@@ -1117,20 +1151,20 @@ insertarentrega(
     );
 
     List<Entrega>? listaentregado = await provider.entrega(entrega);
-    /*if (provider.cartillaseleccionada!.idFamilia == '105' &&
-        provider.cartillaseleccionada!.codEnv != 'null' && provider.cartillaseleccionada!.maxEnv!=null) {
-      double contador = await TrabajadorxContratistaProvider().getcountentrybyid(
+    if (provider.cartillaseleccionada!.idFamilia == '105' &&
+        provider.cartillaseleccionada!.codEnv != 'null' &&
+        provider.cartillaseleccionada!.maxEnv != null) {
+      int contador = await TrabajadorxContratistaProvider().getcountentrybyid(
         provider.cartillaseleccionada!.idAndroidCartilla!,
       );
 
       Contador_bins contadorbins = Contador_bins(
         idAndroidCartilla: provider.cartillaseleccionada!.idAndroidCartilla!,
         cant: contador + 1,
-      );*/
-
-    //if (int.parse(provider.cartillaseleccionada!.maxEnv!) >= contador + 1) {
-    //await TrabajadorxContratistaProvider().insertcontador(contadorbins);
-    /*if (listaentregado == null) {
+      );
+      if (int.parse(provider.cartillaseleccionada!.maxEnv!) >= contador + 1) {
+        await TrabajadorxContratistaProvider().insertcontador(contadorbins);
+        if (listaentregado == null) {
           provider.speak('Entrega ${entrega.cantidad} confirmada');
           final insert = await provider.insertentry(entrega);
           List<Cartillaqr>? fechainiciocartilla = await provider
@@ -1177,40 +1211,10 @@ insertarentrega(
       } else {
         provider.speak('Debe cerrar el envase antes');
       }
- } else {   */
-    if (listaentregado == null) {
-      provider.speak('Entrega ${entrega.cantidad} confirmada');
-      final insert = await provider.insertentry(entrega);
-      List<Cartillaqr>? fechainiciocartilla = await provider
-          .getfechainiciobyidcartilla(
-            provider.cartillaseleccionada!.idAndroidCartilla!,
-          );
-      fechainiciocartilla == null || fechainiciocartilla.length == 0
-          ? null
-          : provider.updatehorainicio(
-            provider.cartillaseleccionada!.idAndroidCartilla!,
-          );
     } else {
-      DateTime horaentrega = DateTime.parse(listaentregado[0].hora!);
-      Duration diff1 = hora.difference(horaentrega);
-      if (diff1.inSeconds > 3) {
-        Entrega nuevaentrega = Entrega(
-          identrega: listaentregado[0].identrega,
-          nombre: listaentregado[0].nombre,
-          digito: listaentregado[0].digito,
-          rut: listaentregado[0].rut!,
-          idempresa: listaentregado[0].idempresa,
-          IdTrabXContratista: listaentregado[0].IdTrabXContratista,
-          idcartilla: listaentregado[0].idcartilla,
-          qr: listaentregado[0].qr,
-          cantidad: listaentregado[0].cantidad! + 1,
-          fecha: date,
-          hora: hora.toString(),
-          swsincronizado: '0',
-        );
-        final update = await provider.updateentry(nuevaentrega);
-
-        provider.speak('Entrega ${nuevaentrega.cantidad} confirmada');
+      if (listaentregado == null) {
+        provider.speak('Entrega ${entrega.cantidad} confirmada');
+        final insert = await provider.insertentry(entrega);
         List<Cartillaqr>? fechainiciocartilla = await provider
             .getfechainiciobyidcartilla(
               provider.cartillaseleccionada!.idAndroidCartilla!,
@@ -1220,9 +1224,39 @@ insertarentrega(
             : provider.updatehorainicio(
               provider.cartillaseleccionada!.idAndroidCartilla!,
             );
+      } else {
+        DateTime horaentrega = DateTime.parse(listaentregado[0].hora!);
+        Duration diff1 = hora.difference(horaentrega);
+        if (diff1.inSeconds > 3) {
+          Entrega nuevaentrega = Entrega(
+            identrega: listaentregado[0].identrega,
+            nombre: listaentregado[0].nombre,
+            digito: listaentregado[0].digito,
+            rut: listaentregado[0].rut!,
+            idempresa: listaentregado[0].idempresa,
+            IdTrabXContratista: listaentregado[0].IdTrabXContratista,
+            idcartilla: listaentregado[0].idcartilla,
+            qr: listaentregado[0].qr,
+            cantidad: listaentregado[0].cantidad! + 1,
+            fecha: date,
+            hora: hora.toString(),
+            swsincronizado: '0',
+          );
+          final update = await provider.updateentry(nuevaentrega);
+
+          provider.speak('Entrega ${nuevaentrega.cantidad} confirmada');
+          List<Cartillaqr>? fechainiciocartilla = await provider
+              .getfechainiciobyidcartilla(
+                provider.cartillaseleccionada!.idAndroidCartilla!,
+              );
+          fechainiciocartilla == null || fechainiciocartilla.length == 0
+              ? null
+              : provider.updatehorainicio(
+                provider.cartillaseleccionada!.idAndroidCartilla!,
+              );
+        }
       }
     }
-    //  }
   } else {
     late String cantidad;
     showDialog(
@@ -1233,10 +1267,7 @@ insertarentrega(
           mensajecontent: 'Ingresar numero de entregas',
           cantidad: TextFormField(
             onChanged: (value) => cantidad = value,
-            keyboardType: TextInputType.numberWithOptions(
-              decimal: true,
-              signed: false,
-            ),
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(9),
@@ -1257,14 +1288,14 @@ insertarentrega(
                   rut: trabajador[0].rut!,
                   idempresa: trabajador[0].idempresa,
                   IdTrabXContratista: trabajador[0].idtrabxcontratista,
-                  cantidad: double.parse(cantidad),
+                  cantidad: int.parse(cantidad),
                   fecha: date,
                   hora: hora.toString(),
                   swsincronizado: '0',
                 );
-                /*if (provider.cartillaseleccionada!.idFamilia == '105' &&
+                if (provider.cartillaseleccionada!.idFamilia == '105' &&
                     provider.cartillaseleccionada!.codEnv != 'null') {
-                  double contador = await TrabajadorxContratistaProvider()
+                  int contador = await TrabajadorxContratistaProvider()
                       .getcountentrybyid(
                         provider.cartillaseleccionada!.idAndroidCartilla!,
                       );
@@ -1340,47 +1371,14 @@ insertarentrega(
                     Navigator.pop(context);
                   } else {
                     //cerrar el envase
-                  }*/
-                //   } else {
-                List<Entrega>? listaentregado = await provider.entrega(entrega);
-                if (listaentregado == null) {
-                  provider.speak('Entrega ${entrega.cantidad} confirmada');
-                  final insert = await provider.insertentry(entrega);
-                  List<Cartillaqr>? fechainiciocartilla = await provider
-                      .getfechainiciobyidcartilla(
-                        provider.cartillaseleccionada!.idAndroidCartilla!,
-                      );
-                  fechainiciocartilla == null || fechainiciocartilla.length == 0
-                      ? null
-                      : provider.updatehorainicio(
-                        provider.cartillaseleccionada!.idAndroidCartilla!,
-                      );
+                  }
                 } else {
-                  DateTime horaentrega = DateTime.parse(
-                    listaentregado[0].hora!,
+                  List<Entrega>? listaentregado = await provider.entrega(
+                    entrega,
                   );
-                  Duration diff1 = hora.difference(horaentrega);
-                  if (diff1.inSeconds > 3) {
-                    Entrega nuevaentrega = Entrega(
-                      identrega: listaentregado[0].identrega,
-                      nombre: listaentregado[0].nombre,
-                      digito: listaentregado[0].digito,
-                      rut: listaentregado[0].rut!,
-                      idempresa: listaentregado[0].idempresa,
-                      IdTrabXContratista: listaentregado[0].IdTrabXContratista,
-                      idcartilla: listaentregado[0].idcartilla,
-                      qr: listaentregado[0].qr,
-                      cantidad:
-                          listaentregado[0].cantidad! + double.parse(cantidad),
-                      fecha: date,
-                      hora: hora.toString(),
-                      swsincronizado: '0',
-                    );
-                    final update = await provider.updateentry(nuevaentrega);
-
-                    provider.speak(
-                      'Entrega ${nuevaentrega.cantidad} confirmada',
-                    );
+                  if (listaentregado == null) {
+                    provider.speak('Entrega ${entrega.cantidad} confirmada');
+                    final insert = await provider.insertentry(entrega);
                     List<Cartillaqr>? fechainiciocartilla = await provider
                         .getfechainiciobyidcartilla(
                           provider.cartillaseleccionada!.idAndroidCartilla!,
@@ -1391,13 +1389,50 @@ insertarentrega(
                         : provider.updatehorainicio(
                           provider.cartillaseleccionada!.idAndroidCartilla!,
                         );
+                  } else {
+                    DateTime horaentrega = DateTime.parse(
+                      listaentregado[0].hora!,
+                    );
+                    Duration diff1 = hora.difference(horaentrega);
+                    if (diff1.inSeconds > 3) {
+                      Entrega nuevaentrega = Entrega(
+                        identrega: listaentregado[0].identrega,
+                        nombre: listaentregado[0].nombre,
+                        digito: listaentregado[0].digito,
+                        rut: listaentregado[0].rut!,
+                        idempresa: listaentregado[0].idempresa,
+                        IdTrabXContratista:
+                            listaentregado[0].IdTrabXContratista,
+                        idcartilla: listaentregado[0].idcartilla,
+                        qr: listaentregado[0].qr,
+                        cantidad:
+                            listaentregado[0].cantidad! + int.parse(cantidad),
+                        fecha: date,
+                        hora: hora.toString(),
+                        swsincronizado: '0',
+                      );
+                      final update = await provider.updateentry(nuevaentrega);
+
+                      provider.speak(
+                        'Entrega ${nuevaentrega.cantidad} confirmada',
+                      );
+                      List<Cartillaqr>? fechainiciocartilla = await provider
+                          .getfechainiciobyidcartilla(
+                            provider.cartillaseleccionada!.idAndroidCartilla!,
+                          );
+                      fechainiciocartilla == null ||
+                              fechainiciocartilla.length == 0
+                          ? null
+                          : provider.updatehorainicio(
+                            provider.cartillaseleccionada!.idAndroidCartilla!,
+                          );
+                    }
                   }
+                  provider.listadoentregas(
+                    provider.cartillaseleccionada!.idAndroidCartilla!,
+                  );
+                  Navigator.pop(context);
                 }
-                provider.listadoentregas(
-                  provider.cartillaseleccionada!.idAndroidCartilla!,
-                );
-                Navigator.pop(context);
-                //  }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
@@ -1456,19 +1491,19 @@ Future<void> sincronizaciontrabajadores(
     );
   }
 
-  /*http.Response response = await provider.getcuarteles(
+  http.Response response = await provider.getcuarteles(
     provider.cartillasdisponibles[0].idAndroidCartilla!,
   );
   if (response.statusCode == 200) {
     final cuartelresponse = CuartelResponse.fromJson(response.body);
     List<Cuarteles> listacuartels = cuartelresponse.cuartel;
     await provider.insertcuarteles(listacuartels);
-  }*/
+  }
 
-  /*List<Actividade> respuestaactividades = await provider.getmaestroactividades(
+  List<Actividade> respuestaactividades = await provider.getmaestroactividades(
     provider.cartillasdisponibles[0].idEmpresa!,
-  );*/
-  //await provider.insertmaestrolavores(respuestaactividades);
+  );
+  await provider.insertmaestrolavores(respuestaactividades);
 
   List<Cartillaqr> respuestacartilla = await provider.getcartillastosync(false);
 

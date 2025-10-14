@@ -3,7 +3,7 @@ import 'dart:convert';
 class ListadoEntregaResponse {
   String? cuartel;
   String? labor;
-  double? cantidad;
+  int? cantidad;
   String? nombre;
   String? idcartilla;
   int? identrega;

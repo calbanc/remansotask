@@ -171,7 +171,7 @@ class Cartillaqr {
 
 class Contador_bins{
   String? idAndroidCartilla;
-  double? cant;
+  int? cant;
   Contador_bins({
     this.idAndroidCartilla,
     this.cant,

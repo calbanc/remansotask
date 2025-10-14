@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:image_picker/image_picker.dart';
 import 'package:verfwork/providers/editworkerprovider.dart';
 import 'package:verfwork/providers/provider.dart';
 import 'package:verfwork/response/response.dart';
@@ -18,7 +15,7 @@ class DetailWorker extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => EditWorkerProvider()..cargardatosiniciales(worker)),
+        ChangeNotifierProvider(create: (context) => EditWorkerProvider()),
       ],
       child: _detailworker(worker: worker),
     );
@@ -212,48 +209,19 @@ class _datospersonales extends StatelessWidget {
 
   final EditWorkerProvider provider;
   final ListadoEntregaResponse worker;
-  bool _validarut(String? input) {
-    if (input == null) return false;
-    if(!provider.validarut){
-      final texto = input.trim();
-      final soloNumeros = RegExp(r'^\d+$');
-      bool re= soloNumeros.hasMatch(texto)  ;
+  bool _validarut(String? rut) {
+    if (rut == null) return false;
+    dynamic regExp;
+    provider.validarut
+        ? regExp = RegExp(r'(^(\d{1,2}(?:[\.]?\d{3}){2}-[\dkK])$)')
+        : regExp = RegExp(r'^\d+$');
 
-      return re;
-    };
-    final raw = input.toUpperCase().replaceAll(RegExp(r'[^0-9K]'), '');
-    if (raw.length < 2) return false;
-
-    // 2) Separa cuerpo y DV
-    final body = raw.substring(0, raw.length - 1);
-    final dv = raw.substring(raw.length - 1);
-
-    // Cuerpo solo dígitos
-    if (!RegExp(r'^\d+$').hasMatch(body)) return false;
-
-    // 3) Calcula DV esperado (módulo 11, factores 2..7)
-    int sum = 0;
-    int factor = 2;
-    for (int i = body.length - 1; i >= 0; i--) {
-      sum += int.parse(body[i]) * factor;
-      factor = (factor == 7) ? 2 : factor + 1;
-    }
-    final mod = 11 - (sum % 11);
-    final expectedDv = switch (mod) {
-      11 => '0',
-      10 => 'K',
-      _  => mod.toString(),
-    };
-
-    return dv == expectedDv;
+    ;
+    return regExp.hasMatch(rut);
   }
 
   @override
   Widget build(BuildContext context) {
-    final _picker = ImagePicker();
-
-
-
     return Column(
       children: [
         const SizedBox(height: 30),
@@ -265,6 +233,47 @@ class _datospersonales extends StatelessWidget {
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Color.fromRGBO(36, 99, 174, 1),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 26,
+            right: 26,
+            top: 13,
+            bottom: 13,
+          ),
+          child: TextFormField(
+            onChanged: (value) {
+              provider.nombre = value;
+            },
+            initialValue: worker.nombre,
+            decoration: VerfrutApp.InputDecorationVerf(
+              label: 'Nombre Trabajador',
+              prefixicon: Icons.account_circle_outlined,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 26,
+            right: 26,
+            top: 13,
+            bottom: 13,
+          ),
+          child: TextFormField(
+            onChanged: (value) => provider.rut = value,
+            initialValue: worker.rut!,
+            validator: (value) {
+              return (value == null || value.isEmpty)
+                  ? 'Debe ingresar un rut'
+                  : _validarut(value)
+                  ? null
+                  : 'Debe ingresar un rut valido';
+            },
+            decoration: VerfrutApp.InputDecorationVerf(
+              label: 'Rut Trabajador',
+              prefixicon: Icons.fingerprint,
             ),
           ),
         ),
@@ -284,106 +293,6 @@ class _datospersonales extends StatelessWidget {
             ),
           ),
         ),
-
-        if(provider.validarut && provider.path=='')Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 30,
-            vertical: 16,
-          ),
-          child: GestureDetector(
-            onTap: () async {
-              final image = await _picker.pickImage(source: ImageSource.camera);
-              if (image != null) {
-                provider.path = image.path;
-                await provider.procesardatos(image.path);
-              }
-            },
-            child: Container(
-
-              width: MediaQuery.of(context).size.width,
-              height: 220,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 16,
-                ),
-                child: Center(child: Text('Toca aqui para tomar foto al reverso del Documento de Identidad ')),
-              ),
-            ),
-          ),
-        ),
-        provider.path==''? Container():Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 30,
-            vertical: 16,
-          ),
-          child: GestureDetector(
-            onTap: () async {
-              final image = await _picker.pickImage(source: ImageSource.camera);
-              if (image != null) {
-                provider.path = image.path;
-                await provider.procesardatos(image.path);
-              }
-            },
-            child: Container(
-
-              width: MediaQuery.of(context).size.width,
-              height: 220,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Image.file(File(provider.path)),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(
-            left: 26,
-            right: 26,
-            top: 13,
-            bottom: 13,
-          ),
-          child: TextFormField(
-            controller: provider.controllername,
-
-            decoration: VerfrutApp.InputDecorationVerf(
-              label: 'Nombre Trabajador',
-              prefixicon: Icons.account_circle_outlined,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(
-            left: 26,
-            right: 26,
-            top: 13,
-            bottom: 13,
-          ),
-          child: TextFormField(
-            controller: provider.controllerrut,
-
-            //initialValue: worker.rut!,
-            validator: (value) {
-              return (value == null || value.isEmpty)
-                  ? 'Debe ingresar un rut'
-                  : _validarut(value)
-                  ? null
-                  : 'Debe ingresar un rut valido';
-            },
-            decoration: VerfrutApp.InputDecorationVerf(
-              label: 'Rut Trabajador',
-              prefixicon: Icons.fingerprint,
-            ),
-          ),
-        ),
-
         SizedBox(
           width: MediaQuery.of(context).size.width,
           child: Padding(
@@ -405,21 +314,15 @@ class _datospersonales extends StatelessWidget {
                 if (!provider.isValidateForm()) return;
 
                 provider.isloading = true;
-                String name = provider.controllername.text!;
-                String rutt = provider.controllerrut.text!;
-                String dv='';
-                //provider.nombre != null ? name = provider.nombre! : name;
-                if (rutt.contains("-")) {
-                  var rut = rutt.split("-");
+                String name = worker.nombre!;
+                String rutt = worker.rut!;
+                provider.nombre != null ? name = provider.nombre! : name;
 
-                  dv = rut[1];
-                }
                 provider.rut != null ? rutt = provider.rut! : rutt;
                 int respuesta = await provider.updateworkerentry(
                   rutt,
                   name,
                   worker.identrega!,
-                  dv
                 );
                 provider.isloading = false;
 
@@ -430,7 +333,6 @@ class _datospersonales extends StatelessWidget {
                   TrabajadorxContratistaProvider().listadoentregas(
                     worker.idcartilla!,
                   );
-                  Navigator.of(context).pop('actualiza');
                 }
               },
               child:
