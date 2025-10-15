@@ -19,4 +19,6 @@ abstract class Env {
   static final String msalTenantId =
       dotenv.env['MSAL_TENANT_ID'] ?? '00000000-0000-0000-0000-000000000000';
   static final String keyencry = dotenv.env['KEY'] ?? "V3RFrU72O2RLA30R";
+  static final String versionapp =
+      dotenv.env['VERSIONAPP']??'';
 }

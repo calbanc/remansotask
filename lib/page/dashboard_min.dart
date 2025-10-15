@@ -25,8 +25,6 @@ class DashboardMain extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<TrabajadorxContratistaProvider>(context);
 
-
-
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(
         title: 'FrutApp Job',
@@ -205,10 +203,8 @@ class DashboardMain extends StatelessWidget {
                             },
                           );
                         } else {
-
-                            int respuesta = await provider.insertarqr(qr);
-                            provider.speak('Cartilla registrada correctamente');
-
+                          int respuesta = await provider.insertarqr(qr);
+                          provider.speak('Cartilla registrada correctamente');
                         }
                       } else {
                         provider.speak('Fecha de termino concluida');
@@ -428,7 +424,7 @@ class _bottombar extends StatelessWidget {
                   return VerfrutApp.Dialogalert(
                     icono: Icons.warning,
                     mensajecontent:
-                    'Tiene datos por sincronizar, no puede cerrar cartilla',
+                        'Tiene datos por sincronizar, no puede cerrar cartilla',
                   );
                 },
               );
@@ -1380,20 +1376,6 @@ Future<void> sincronizaciontrabajadores(
       },
     );
   }
-
-  http.Response response = await provider.getcuarteles(
-    provider.cartillasdisponibles[0].idAndroidCartilla!,
-  );
-  if (response.statusCode == 200) {
-    final cuartelresponse = CuartelResponse.fromJson(response.body);
-    List<Cuarteles> listacuartels = cuartelresponse.cuartel;
-    await provider.insertcuarteles(listacuartels);
-  }
-
-  List<Actividade> respuestaactividades = await provider.getmaestroactividades(
-    provider.cartillasdisponibles[0].idEmpresa!,
-  );
-  await provider.insertmaestrolavores(respuestaactividades);
 
   List<Cartillaqr> respuestacartilla = await provider.getcartillastosync(false);
 

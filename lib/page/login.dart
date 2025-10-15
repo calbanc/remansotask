@@ -14,6 +14,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../const/env.dart';
+
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -164,6 +166,10 @@ class _Login extends StatelessWidget {
                     ),
                   ),
                 ),
+                Positioned(
+                    top: 50,
+                    left: MediaQuery.sizeOf(context).width * 0.4,
+                    child: Text('Version: ${Env.versionapp}',style: TextStyle(fontSize: 18,color: Colors.white),)),
                 Positioned(
                   top: MediaQuery.of(context).size.height * 0.25,
                   left: MediaQuery.of(context).size.width * 0.15,
