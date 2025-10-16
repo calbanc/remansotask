@@ -134,7 +134,7 @@ class Cartillaqr {
       nomFamilia: json["NomFamilia"],
       nomActividad: json["NomActividad"],
       nomEnv: json["NOM_ENV"],
-      cantBins: json["CantMaxEnv"]=='null' ? 0: int.parse(json["CantMaxEnv"]),
+      cantBins: json["CantMaxEnv"]=='null' || json["CantMaxEnv"]==null ? 0: int.parse(json["CantMaxEnv"]),
       SwSincronizado: json["SwSincronizado"]);
 
   Map<String, dynamic> toMap() => {

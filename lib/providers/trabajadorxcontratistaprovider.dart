@@ -385,7 +385,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     final List<Map<String, dynamic>> res = await db.rawQuery('''
       SELECT C.*,(SELECT COUNT(_id) FROM BINS WHERE IdAndroidCartilla=C.IdAndroidCartilla ) as CANT_BINS,C.COD_ENV as 'NOM_ENV'
       FROM CARTILLAS C
-      WHERE C.FechaInicio='$fecha' 
+      WHERE C.FechaInicio='$fecha' and C.HORATERMINO in ('null' ,'00')
       order by C.IdAndroidCartilla desc
       ''');
 
@@ -830,7 +830,8 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     ''');
 
     await getcartillasdisponibles();
-    cartillaseleccionada = cartillasdisponibles[0];
+
+    cartillasdisponibles.isNotEmpty ?  cartillaseleccionada = cartillasdisponibles[0]:null;
     notifyListeners();
   }
 
