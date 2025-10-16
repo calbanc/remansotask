@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' as googlekit;
+import 'package:image_picker/image_picker.dart';
 import 'package:verfwork/page/addtrabajador.dart';
 import 'package:verfwork/page/detailworker.dart';
 import 'package:verfwork/page/options_screen.dart';
@@ -26,7 +28,74 @@ class DashboardMain extends StatelessWidget {
     final provider = Provider.of<TrabajadorxContratistaProvider>(context);
 
     // Redirect to login if no cartillas available
+    Future<String?> _showActionSheet(BuildContext context) async {
+      return await showCupertinoModalPopup<String>(
+        context: context,
+        builder:
+            (BuildContext context) => CupertinoActionSheet(
+          title: const Text('Opciones'),
+          actions: <CupertinoActionSheetAction>[
+            CupertinoActionSheetAction(
+              onPressed: () async {
+                final String qr = await VerfrutApp().scanqr(context);
+                Navigator.pop(context, qr);
 
+                //Navigator.pop(context, 'camera'); // devuelve la opción
+              },
+              child: const Text(
+                'Scanear qr',
+                style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
+              ),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () async {
+                final picker = ImagePicker();
+                final XFile? file = await picker.pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (file == null) return;
+                final scanner = googlekit.BarcodeScanner(
+                  formats: [
+                    googlekit.BarcodeFormat.qrCode,
+                  ], // fuerza solo QR
+                );
+
+                final input = googlekit.InputImage.fromFilePath(file.path);
+                final barcodes = await scanner.processImage(input);
+
+                if (barcodes.isEmpty) {
+                  Navigator.pop(context, '');
+                  return;
+                }
+                final String? raw = barcodes.first.rawValue;
+                Navigator.pop(context, raw);
+              },
+              child: const Text(
+                'Seleccionar Qr',
+                style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
+              ),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  'cancelar',
+                ); // puedes devolver null si prefieres
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'MontserratR',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(
         title: 'FrutApp Job',
@@ -177,52 +246,67 @@ class DashboardMain extends StatelessWidget {
                       ),
                     ),
                     onPressed: () async {
-                      String str = await VerfrutApp().scanqr(context);
-                      var entries = str
-                          .substring(1, str.length - 1)
-                          .split(RegExp(r',\s?'))
-                          .map((e) => e.split(RegExp(r':\s?')))
-                          .map((e) => MapEntry(e.first, e.last));
-                      var result = Map.fromEntries(entries);
-                      Cartillaqr qr = Cartillaqr.fromMap(result);
+                      try {
+                        String str = await _showActionSheet(context) ?? '';
 
-                      final datefechainicio = DateFormat(
-                        'dd/MM/yy',
-                      ).parse(qr.fechainicio!);
-                      final now = DateFormat('dd/MM/yy').format(DateTime.now());
-                      final fechainicio = DateFormat(
-                        'dd/MM/yy',
-                      ).format(datefechainicio);
+                        var entries = str
+                            .substring(1, str.length - 1)
+                            .split(RegExp(r',\s?'))
+                            .map((e) => e.split(RegExp(r':\s?')))
+                            .map((e) => MapEntry(e.first, e.last));
+                        var result = Map.fromEntries(entries);
+                        Cartillaqr qr = Cartillaqr.fromMap(result);
 
-                      if (now.compareTo(fechainicio) == 0) {
-                        List<Cartillaqr> respuesta = await provider.consultaqr(
-                          qr,
-                        );
-                        if (respuesta.length > 0) {
-                          provider.speak('Cartilla ya registrada');
+                        final datefechainicio = DateFormat(
+                          'dd/MM/yy',
+                        ).parse(qr.fechainicio!);
+                        final now = DateFormat(
+                          'dd/MM/yy',
+                        ).format(DateTime.now());
+                        final fechainicio = DateFormat(
+                          'dd/MM/yy',
+                        ).format(datefechainicio);
+
+                        if (now.compareTo(fechainicio) == 0) {
+                          List<Cartillaqr> respuesta = await provider
+                              .consultaqr(qr);
+                          if (respuesta.length > 0) {
+                            provider.speak('Cartilla ya registrada');
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return VerfrutApp.Dialogalert(
+                                  icono: Icons.cancel,
+                                  mensajecontent: 'Cartilla ya registrada',
+                                );
+                              },
+                            );
+                          } else {
+                            int respuesta = await provider.insertarqr(qr);
+                            provider.speak('Cartilla registrada correctamente');
+                          }
+                        } else {
+                          provider.speak('Fecha de termino concluida');
                           showDialog(
                             context: context,
                             builder: (context) {
                               return VerfrutApp.Dialogalert(
                                 icono: Icons.cancel,
-                                mensajecontent: 'Cartilla ya registrada',
+                                mensajecontent: 'Fecha de termino concluida',
                               );
                             },
                           );
-                        } else {
-                          int respuesta = await provider.insertarqr(qr);
-                          provider.speak('Cartilla registrada correctamente');
                         }
-                      } else {
-                        provider.speak('Fecha de termino concluida');
+                      } catch (e) {
                         showDialog(
                           context: context,
-                          builder: (context) {
-                            return VerfrutApp.Dialogalert(
-                              icono: Icons.cancel,
-                              mensajecontent: 'Fecha de termino concluida',
-                            );
-                          },
+                          builder:
+                              (BuildContext context) => CupertinoAlertDialog(
+                            title: Text("Qr Invalido"),
+                            content: Text(
+                              "Estimado usuario QR escaneado no es valido, fecha de termino ya concluida $e",
+                            ),
+                          ),
                         );
                       }
                     },
