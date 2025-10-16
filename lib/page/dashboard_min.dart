@@ -25,6 +25,8 @@ class DashboardMain extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<TrabajadorxContratistaProvider>(context);
 
+    // Redirect to login if no cartillas available
+
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(
         title: 'FrutApp Job',
@@ -118,8 +120,10 @@ class DashboardMain extends StatelessWidget {
                   style: TextStyle(fontFamily: 'MontserratR', fontSize: 20),
                 ),
               ),
-              _cartillasCuarteles(provider: provider),
 
+              
+             //provider.cartillasdisponibles.isEmpty ? const _RedirectToLogin() :  _cartillasCuarteles(provider: provider),
+              _cartillasCuarteles(provider: provider),
               Container(
                 child: Row(
                   children: [
@@ -404,11 +408,20 @@ class _bottombar extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
                       ),
-                      onPressed: () {
-                        provider.updatehoratermino(
+                      onPressed: () async{
+                        await provider.updatehoratermino(
                           provider.cartillaseleccionada!.idAndroidCartilla!,
                         );
                         provider.speak('Cartilla cerrada correctamente');
+
+                        if(provider.cartillasdisponibles.isEmpty){
+                          Navigator.pushReplacementNamed(
+                            context,
+                            'login',
+                          );
+                          return;
+                        }
+
                         Navigator.pop(context);
                       },
                       child: const Text(
@@ -495,17 +508,6 @@ class _cartillasCuarteles extends StatelessWidget {
               onTap: () async {
                 provider.cartillaseleccionada =
                     provider.cartillasdisponibles[index];
-
-
-/*
-                Cartillaqr qr=  await provider.cartillasdisponibles[index]!;
-                provider.swunoauno=qr.swUnoaUno=='1'?true:false;
-                provider.notifyListeners();
-*/
-
-
-
-
               },
               child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.18,
@@ -1213,5 +1215,21 @@ Future<void> sincronizaciontrabajadores(
         },
       );
     }
+  }
+}
+class _RedirectToLogin extends StatelessWidget {
+  const _RedirectToLogin({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // dispara navegación en el siguiente frame para no romper el build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const Login()),
+            (route) => false,
+      );
+    });
+    // no pinta nada
+    return const SizedBox.shrink();
   }
 }

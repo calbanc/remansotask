@@ -376,7 +376,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     }
   }
 
-  getcartillasdisponibles() async {
+ Future<void> getcartillasdisponibles() async {
     final now = DateTime.now();
 
     var fecha = DateFormat('dd/MM/yyyy').format(now);

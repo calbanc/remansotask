@@ -84,7 +84,7 @@ class _detailentregaState extends State<_detailentrega> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new),
           onPressed: () async {
-            List<Cartillaqr> lista =
+
                 await trabajadorcontratisprovider.getcartillasdisponibles();
 
             List<Cartillaqr> seleccionado = await trabajadorcontratisprovider
@@ -418,7 +418,7 @@ class _detailentregaState extends State<_detailentrega> {
                           fontSize: 16.0,
                         );
 
-                        List<Cartillaqr> lista =
+
                             await trabajadorcontratisprovider
                                 .getcartillasdisponibles();
 
@@ -491,7 +491,7 @@ class _detailentregaState extends State<_detailentrega> {
                           textColor: Colors.black,
                           fontSize: 16.0,
                         );
-                        List<Cartillaqr> lista =
+
                             await trabajadorcontratisprovider
                                 .getcartillasdisponibles();
 
