@@ -1019,4 +1019,30 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       return false;
     }
   }
-}
+  Future<int> cambiartipolectura(Cartillaqr cartilla, bool valor) async {
+    try {
+      final db = await database;
+      String valor2 = valor ? '1' : '0';
+
+      // Update the local state first
+      _swunoauno = valor;
+      if (cartillaseleccionada != null) {
+        cartillaseleccionada!.swUnoaUno = valor2;
+      }
+
+      // Update the database
+      final res = await db.update(
+          'CARTILLAS',
+          {'SwUnoaUno': valor2},
+          where: 'IdAndroidCartilla = ?',
+          whereArgs: [cartilla.idAndroidCartilla]
+      );
+
+      notifyListeners();
+      return res;
+    } catch (e) {
+      print('Error en cambiartipolectura: $e');
+      rethrow;
+    }
+  }
+  }

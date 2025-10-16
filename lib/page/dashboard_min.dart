@@ -150,6 +150,9 @@ class DashboardMain extends StatelessWidget {
                         value: provider.swunoauno,
                         onChanged: (bool? value) {
                           provider.swunoauno = value!;
+                          provider.cambiartipolectura(provider.cartillaseleccionada!, value);
+
+
                         },
                       ),
                     ),
@@ -268,25 +271,7 @@ class DashboardMain extends StatelessWidget {
                             .gettrabajadorbyqr(barcodeScanRes, idcartilla);
 
                         if (lista!.isEmpty) {
-                          /*   final pro = await Future.microtask(
-                            () => {
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (_, __, ___) => AddTrabajador(
-                                        qr: barcodeScanRes,
-                                        idcartilla:
-                                            provider.cartillaseleccionada!,
-                                      ),
-                                  transitionDuration: const Duration(
-                                    seconds: 1,
-                                  ),
-                                ),
-                              ),
-                            },
-                          );
-*/
+
 
                           final result = await Navigator.push(
                             context,
@@ -310,31 +295,7 @@ class DashboardMain extends StatelessWidget {
                           );
                         }
 
-                        /* lista!.isEmpty
-                            ? Future.microtask(
-                              () => {
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder:
-                                        (_, __, ___) => AddTrabajador(
-                                          qr: barcodeScanRes,
-                                          idcartilla:
-                                              provider.cartillaseleccionada!,
-                                        ),
-                                    transitionDuration: const Duration(
-                                      seconds: 1,
-                                    ),
-                                  ),
-                                ),
-                              },
-                            )
-                            : insertarentrega(
-                              provider,
-                              barcodeScanRes,
-                              lista!,
-                              context,
-                            ); */
+
                       }
                     },
                     child: const Text(
@@ -503,132 +464,6 @@ class _cartillasCuarteles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    alertdialog(
-      BuildContext context,
-      TrabajadorxContratistaProvider trabajadorcontratisprovider,
-      Cartillaqr qr,
-    ) async {
-      // trabajadorcontratisprovider.maxenvController.text=qr.maxEnv!.isEmpty ? '' : qr.maxEnv!;
-
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) {
-          return VerfrutApp.DialogalertEnvase(
-            mensajecontent:
-                'Elige el tipo y cantidad que mayor se adapte a tus necesidades',
-            action: Form(
-              key: trabajadorcontratisprovider.formalert,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  DropdownMenu(
-                    width: 250,
-                    label: const Text(
-                      'Tipo de Envase',
-                      style: TextStyle(fontFamily: 'MonserratR', fontSize: 15),
-                    ),
-                    hintText: 'Seleccione un envase',
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'MonserratR',
-                    ),
-                    onSelected: (value) {
-                      trabajadorcontratisprovider.cod_env = value.toString();
-                    },
-                    inputDecorationTheme: const InputDecorationTheme(
-                      filled: true,
-                      fillColor: Color.fromRGBO(230, 236, 245, 1),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(18)),
-                        borderSide: BorderSide(
-                          color: Color.fromRGBO(230, 236, 245, 1),
-                          width: 0,
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(18)),
-                        borderSide: BorderSide(
-                          color: Color.fromRGBO(230, 236, 245, 1),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    dropdownMenuEntries:
-                        trabajadorcontratisprovider.listaenvase!
-                            .map(
-                              (e) => DropdownMenuEntry(
-                                value: e.codEnv,
-                                label: e.nomEnv!,
-                              ),
-                            )
-                            .toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    controller: trabajadorcontratisprovider.maxenvController,
-                    style: const TextStyle(fontFamily: 'MontserratR'),
-                    validator: (value) {
-                      return (value == null ||
-                              value.isEmpty ||
-                              value.length > 50)
-                          ? 'Debe ingresar una cantidad validad'
-                          : null;
-                    },
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      labelText: 'Cantidad Maxima de Entregas',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12), // <-- Radius
-                        ),
-                      ),
-                      onPressed: () async {
-                        FocusScope.of(context).unfocus();
-                        if (!trabajadorcontratisprovider
-                            .isValidateFormalert()) {
-                          return;
-                        }
-
-                        qr.codEnv = trabajadorcontratisprovider.cod_env;
-                        qr.maxEnv =
-                            trabajadorcontratisprovider.maxenvController.text;
-
-                        await trabajadorcontratisprovider.updateenvcartilla(qr);
-                        trabajadorcontratisprovider.formalert.currentState!
-                            .reset();
-
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text(
-                        'Confirmar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'MontserratR',
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -661,15 +496,16 @@ class _cartillasCuarteles extends StatelessWidget {
                 provider.cartillaseleccionada =
                     provider.cartillasdisponibles[index];
 
-                /* if ((provider.cartillaseleccionada!.codEnv!.isEmpty ||
-                        provider.cartillaseleccionada!.codEnv == 'null') &&
-                    provider.listaenvase.isNotEmpty) {
-                  alertdialog(
-                    context,
-                    provider,
-                    provider.cartillaseleccionada!,
-                  );
-                } */
+
+/*
+                Cartillaqr qr=  await provider.cartillasdisponibles[index]!;
+                provider.swunoauno=qr.swUnoaUno=='1'?true:false;
+                provider.notifyListeners();
+*/
+
+
+
+
               },
               child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.18,
@@ -715,41 +551,7 @@ class _cartillasCuarteles extends StatelessWidget {
                               ),
                             ),
 
-                            provider.cartillasdisponibles[index].idFamilia ==
-                                    '105'
-                                ? IconButton(
-                                  onPressed: () async {
-                                    if ((provider
-                                                .cartillaseleccionada!
-                                                .codEnv!
-                                                .isNotEmpty ||
-                                            provider
-                                                    .cartillaseleccionada!
-                                                    .codEnv !=
-                                                'null') &&
-                                        provider.listaenvase.isNotEmpty) {
-                                      alertdialog(
-                                        context,
-                                        provider,
-                                        provider.cartillaseleccionada!,
-                                      );
-                                    }
-                                  },
-                                  icon: Icon(
-                                    Icons.edit_outlined,
-                                    size: 20,
-                                    color:
-                                        provider
-                                                    .cartillaseleccionada!
-                                                    .idAndroidCartilla ==
-                                                provider
-                                                    .cartillasdisponibles[index]
-                                                    .idAndroidCartilla
-                                            ? Colors.white
-                                            : Colors.black,
-                                  ),
-                                )
-                                : Container(),
+
                           ],
                         ),
 
