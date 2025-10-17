@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:verfwork/const/env.dart';
 import 'package:verfwork/providers/provider.dart';
@@ -17,6 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 
+import '../page/mrz/chile_mrz_parser.dart';
 import '../response/ActividadesResponse.dart';
 import '../response/EnvaseResponse.dart';
 import '../response/excel.dart';
@@ -75,6 +77,12 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     _swunoauno = value;
     updateswunoauno(cartillaseleccionada!.idAndroidCartilla!, uno);
 
+    notifyListeners();
+  }
+  String _path='';
+  String get path => _path;
+  set path(String value) {
+    _path = value;
     notifyListeners();
   }
 
@@ -1047,5 +1055,13 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       print('Error en cambiartipolectura: $e');
       rethrow;
     }
+  }
+  Future<void>procesardatos(String path) async{
+    final input = InputImage.fromFilePath(path);
+    final result = await recognizer.processImage(input);
+    final text = result.text;
+    final parsed = ChileMrzParser.parseFromOcr(text);
+    controlladornombre.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
+    controlladorrut.text=' ${parsed.rutDigits}-${parsed.dv}';
   }
   }
