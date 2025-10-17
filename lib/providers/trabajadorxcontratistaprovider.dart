@@ -25,9 +25,7 @@ import '../response/excel.dart';
 import '../response/qrcartilla_response.dart';
 
 class TrabajadorxContratistaProvider extends ChangeNotifier {
-  final MobileScannerController controller = MobileScannerController(
-    formats: [BarcodeFormat.qrCode],
-  );
+
 
   TextEditingController maxenvController = TextEditingController(text: '');
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
@@ -1056,12 +1054,5 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       rethrow;
     }
   }
-  Future<void>procesardatos(String path) async{
-    final input = InputImage.fromFilePath(path);
-    final result = await recognizer.processImage(input);
-    final text = result.text;
-    final parsed = ChileMrzParser.parseFromOcr(text);
-    controlladornombre.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
-    controlladorrut.text=' ${parsed.rutDigits}-${parsed.dv}';
-  }
+
   }
