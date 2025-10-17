@@ -12,6 +12,8 @@ import 'package:http/http.dart' as http;
 
 import 'package:path/path.dart';
 
+import '../response/DataserverResponse.dart';
+
 
 class DataServerScreen extends StatelessWidget {
   Cartillaqr cartilla;
