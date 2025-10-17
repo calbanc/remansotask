@@ -282,15 +282,57 @@ class _Login extends StatelessWidget {
                                     trabajadorcontratisprovider.speak(
                                       'Fecha de termino concluida',
                                     );
+
+
                                     showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return VerfrutApp.Dialogalert(
-                                          icono: Icons.cancel,
-                                          mensajecontent:
-                                              'Fecha de termino concluida',
-                                        );
-                                      },
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            //  title: Text( title! ,style: TextStyle(fontFamily: 'MontserratR'),) ,
+                                            content: SizedBox(
+                                              height: 220,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  SvgPicture.asset('assets/isologo.svg'),
+                                                  SizedBox(height: 10),
+                                                  Text('Fecha de termino concluida, desea visualizar registros de cartilla', style: TextStyle(fontFamily: 'MontserratR')),
+                                                  SizedBox(height: 10),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12), // <-- Radius
+                                                      ),
+                                                    ),
+                                                    onPressed: () async  {
+                                                      bool conectado = await Connectivity_provider().isOnlineNet();
+                                                      if (conectado) {
+                                                        Navigator.pop(context);
+
+
+                                                        final result = await Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder:
+                                                                (context) => DataServerScreen(cartilla: qr,
+
+                                                            ),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        Navigator.pop(context);
+                                                      }
+                                                    },
+                                                    child: Text('Ver Datos',style: TextStyle(color: Colors.white,fontFamily: 'MontserratB'),),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        }
+
                                     );
                                   }
                                 } catch (e) {
