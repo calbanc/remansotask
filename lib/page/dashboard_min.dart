@@ -422,7 +422,7 @@ class DashboardMain extends StatelessWidget {
                     ),
 
                     Text(
-                      'Entregas: ${provider.totalcantidadentregas.toString()}  ',
+                      'Entregas: ${provider.totalcantidadentregas.toStringAsFixed(2)}  ',
                       style: TextStyle(fontFamily: 'MontserratR', fontSize: 12),
                     ),
                   ],
