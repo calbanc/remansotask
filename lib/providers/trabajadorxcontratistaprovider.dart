@@ -894,7 +894,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       SELECT CANT FROM CONTADOR_BINS WHERE IdAndroidCartilla='$idcartilla' 
     ''');
 
-    contador = res3.length > 0 ? res3.first['CANT'] as int : 0;
+    contador = res3.length > 0 ? res3.first['CANT'] as double : 0;
 
     var kd = res2.first;
     totalcantidadentregas = kd['Cantidad'] as double;
