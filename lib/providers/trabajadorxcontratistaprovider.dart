@@ -794,6 +794,8 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     double cantidad = entrega.cantidad!;
     double nuevacantidad = cantidad - 1;
 
+    nuevacantidad = nuevacantidad < 0 ? 0 : nuevacantidad;
+
     final db = await database;
     final res = await db.rawUpdate('''
       UPDATE ENTREGAS SET  SwSincronizado='0' , Cantidad='$nuevacantidad'  WHERE IdEntrega='$identrega'
@@ -879,7 +881,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     ''');
 
     final res2 = await db.rawQuery(
-      '''   SELECT  IFNULL( SUM(E.CANTIDAD) ,0)AS 'Cantidad'
+      '''   SELECT  IFNULL( SUM(E.CANTIDAD) ,0.0)AS 'Cantidad'
       FROM ENTREGAS E
       INNER JOIN CARTILLAS C ON E.IdAndroidCartilla=C.IdAndroidCartilla
       where e.IdAndroidCartilla='$idcartilla' and e.Cantidad>0 ''',
