@@ -56,8 +56,6 @@ class _Login extends StatelessWidget {
                 onPressed: () async {
                   final String qr = await VerfrutApp().scanqr(context);
                   Navigator.pop(context, qr);
-
-                  //Navigator.pop(context, 'camera'); // devuelve la opción
                 },
                 child: const Text(
                   'Scanear qr',

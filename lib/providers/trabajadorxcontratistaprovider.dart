@@ -367,7 +367,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     Map<String, String> header = new Map();
     header["content-type"] = "application/x-www-form-urlencoded";
     final response = await http.post(url, body: {"json": parametros});
-    final respuesta = SyncEntregasResponse.fromJson(response.body);
+
     if (response.statusCode == 200) {
       await updateSync(entrega.identrega.toString()!);
       return 'ok';
