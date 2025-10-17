@@ -1041,7 +1041,7 @@ insertarentrega(
                         idcartilla: listaentregado[0].idcartilla,
                         qr: listaentregado[0].qr,
                         cantidad:
-                            listaentregado[0].cantidad! + int.parse(cantidad),
+                            listaentregado[0].cantidad! + double.parse(cantidad),
                         fecha: date,
                         hora: hora.toString(),
                         swsincronizado: '0',

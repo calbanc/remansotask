@@ -232,9 +232,9 @@ class _addTrabajador extends StatelessWidget {
           
                         final today = DateTime.now();
                         final date = DateFormat('dd/MM/yyyy').format(today);
-                        int cantidad = 1;
+                        double cantidad = 1;
                         if (idcartilla.swUnoaUno == '0') {
-                          cantidad = int.parse(
+                          cantidad = double.parse(
                             provider.controlladorcantidad.text,
                           );
                         }
@@ -256,58 +256,7 @@ class _addTrabajador extends StatelessWidget {
           
                         int contador = await TrabajadorxContratistaProvider()
                             .getcountentrybyid(idcartilla.idAndroidCartilla!);
-                        if (idcartilla.idFamilia == '105' &&
-                            idcartilla.codEnv != "null") {
-                          Contador_bins contadorbins = Contador_bins(
-                            idAndroidCartilla: idcartilla.idAndroidCartilla!,
-                            cant: contador + 1,
-                          );
-                          if (int.parse(idcartilla.maxEnv!) >= contador + 1) {
-                            try {
-                              await provider.insertentry(entrega);
-                              await TrabajadorxContratistaProvider()
-                                  .insertcontador(contadorbins);
-                              await TrabajadorxContratistaProvider()
-                                  .getcartillasdisponibles();
-                              List<QrCartillaResponse>? fechainiciocartilla =
-                                  await provider.getfechainiciobyidcartilla(
-                                    idcartilla.idAndroidCartilla!,
-                                  );
-                              fechainiciocartilla == null ||
-                                      fechainiciocartilla.length == 0
-                                  ? provider.updatehorainicio(
-                                    idcartilla.idAndroidCartilla!,
-                                  )
-                                  : null;
-          
-                              TrabajadorxContratistaProvider().speak(
-                                'Entrega Registrada',
-                              );
-                              Navigator.of(context).pop();
-          
-                              /*  Future.microtask(
-                                () => {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    PageRouteBuilder(
-                                      pageBuilder:
-                                          (_, __, ___) => MainDashboard(),
-                                      transitionDuration: const Duration(
-                                        seconds: 3,
-                                      ),
-                                    ),
-                                  ),
-                                },
-                              ); */
-                            } catch (e) {
-                              print(e);
-                            }
-                          } else {
-                            TrabajadorxContratistaProvider().speak(
-                              'Debe cerrar el envase antes',
-                            );
-                          }
-                        } else {
+
                           await provider.insertentry(entrega);
           
                           await TrabajadorxContratistaProvider()
@@ -329,7 +278,7 @@ class _addTrabajador extends StatelessWidget {
           
                           Navigator.of(context).pop();
                         }
-                      },
+                      ,
               child: const Text(
                 'Agregar Trabajador',
                 style: TextStyle(

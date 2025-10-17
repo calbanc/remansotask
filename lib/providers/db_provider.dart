@@ -23,21 +23,21 @@ class DBProvider extends ChangeNotifier {
     final path = join(documentsDirectory.path, 'VerfrutContratista.db');
 
     return await openDatabase(
-      path,
-      version: Env.dbversion,
-      onOpen: (db) => {},
-      onCreate: (Database db, int version) async {
-        await db.execute(''' CREATE TABLE CONTADOR_BINS(
+        path,
+        version: Env.dbversion,
+        onOpen: (db) => {},
+        onCreate: (Database db, int version) async {
+          await db.execute(''' CREATE TABLE CONTADOR_BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
-              CANT INTEGER                            
+              CANT REAL                            
               ) ''');
 
-        await db.execute(''' CREATE TABLE BINS(
+          await db.execute(''' CREATE TABLE BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               COD_BINS TEXT,
-              CANT INTEGER,
+              CANT REAL,
               COD_ENV TEXT,
               SW_SINCRONIZADO TEXT
               
@@ -46,7 +46,7 @@ class DBProvider extends ChangeNotifier {
 
 
 
-        await db.execute('''
+          await db.execute('''
             CREATE TABLE CARTILLAS(
             IdAndroidCartilla TEXT,
             IdEmpresa TEXT,
@@ -79,9 +79,8 @@ class DBProvider extends ChangeNotifier {
             )
             ''');
 
-        await db.execute('''
-            CREATE TABLE TRABAJADORESXCONTRATISTA(
-              
+          await db.execute('''
+            CREATE TABLE TRABAJADORESXCONTRATISTA(              
               IdEmpresa TEXT,
               Rut TEXT,
               Digito TEXT,
@@ -92,12 +91,12 @@ class DBProvider extends ChangeNotifier {
             )
             ''');
 
-        await db.execute('''
+          await db.execute('''
             CREATE TABLE ENTREGAS(
               IdEntrega integer primary key,
               IdAndroidCartilla TEXT,
               Qr TEXT,
-              Cantidad integer,
+              Cantidad REAL,
               Fecha TEXT,
               Hora TEXT,
               IdTrabXContratista TEXT,
@@ -110,7 +109,7 @@ class DBProvider extends ChangeNotifier {
 
           
           ''');
-        await db.execute('''
+          await db.execute('''
             CREATE TABLE CONFIG(
               FechaSincronizacion TEXT,
               TiempoDelay TEXT
@@ -121,44 +120,106 @@ class DBProvider extends ChangeNotifier {
           ''');
 
 
-      },
-      onUpgrade: (Database db, int olversion, int newverion) async {
-        if (olversion < newverion) {
+        },
+        onUpgrade: (Database db, int olversion, int newverion) async {
+          if (olversion < newverion) {
 
-          await db.execute(''' DROP TABLE IF EXISTS CUARTELES ''');
-          await db.execute(''' DROP TABLE IF EXISTS MAESTRO_LABORES ''');
-          await db.execute(''' DROP TABLE IF EXISTS ENVASE ''');
+            final result1 = await db.rawQuery("PRAGMA table_info(CARTILLAS);");
+            final hasMAXENV = result1.any((column) =>
+            column['name'] == 'MAX_ENV');
+            final hasCantMaxEnv = result1.any((column) =>
+            column['name'] == 'CantMaxEnv');
+            if (!hasMAXENV) {
+              hasCantMaxEnv ? null : await db.execute(
+                  "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
+            } else {
+              await db.execute("ALTER TABLE CARTILLAS DROP COLUMN MAX_ENV");
+              hasCantMaxEnv ? null : await db.execute(
+                  "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
+            }
 
-          await db.execute(''' CREATE  TABLE IF NOT EXISTS BINS(
+            await db.execute(''' DROP TABLE IF EXISTS CUARTELES ''');
+            await db.execute(''' DROP TABLE IF EXISTS MAESTRO_LABORES ''');
+            await db.execute(''' DROP TABLE IF EXISTS ENVASE ''');
+            await db.execute(''' CREATE  TABLE IF NOT EXISTS BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               COD_BINS TEXT,
-              CANT INTEGER,
+              CANT REAL,
               COD_ENV,
               SW_SINCRONIZADO TEXT
               
               ) ''');
-          await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
+            await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               CANT INTEGER                            
               ) ''');
 
-          final result1 = await db.rawQuery("PRAGMA table_info(CARTILLAS);");
-          final hasMAXENV = result1.any((column) => column['name'] == 'MAX_ENV');
-          final hasCantMaxEnv = result1.any((column) => column['name'] == 'CantMaxEnv');
-          if (!hasMAXENV) {
-            hasCantMaxEnv ? null: await db.execute("ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
-          }else{
-            await db.execute("ALTER TABLE CARTILLAS DROP COLUMN MAX_ENV");
-            hasCantMaxEnv ? null: await db.execute("ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
+
+            if (olversion < 5) {
+              newverion==5 ? await db.execute( ''' DROP TABLE BINS '''):null;
+              newverion==5 ? await db.execute( ''' DROP TABLE CONTADOR_BINS '''):null;
+
+              await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
+                      _id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      IdAndroidCartilla TEXT,
+                      CANT REAL                            
+                      ) ''');
+              await db.execute(''' CREATE TABLE IF NOT EXISTS BINS(
+                      _id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      IdAndroidCartilla TEXT,
+                      COD_BINS TEXT,
+                      CANT REAL,
+                      COD_ENV TEXT,
+                      SW_SINCRONIZADO TEXT
+                      
+                      ) ''');
+            }
+
+            await db.transaction((txn) async {
+
+              await txn.execute('''
+                  CREATE TABLE ENTREGAS_tmp(
+                    IdEntrega INTEGER PRIMARY KEY,
+                    IdAndroidCartilla TEXT,
+                    Qr TEXT,
+                    Cantidad REAL,            
+                    Fecha TEXT,
+                    Hora TEXT,
+                    IdTrabXContratista TEXT,
+                    IdEmpresa TEXT,
+                    Rut TEXT,
+                    Digito TEXT,
+                    Nombre TEXT,
+                    SwSincronizado TEXT
+                  );
+                ''');
+
+              // 2) Copiar datos (con CAST por si acaso)
+              await txn.execute('''
+                  INSERT INTO ENTREGAS_tmp (
+                    IdEntrega, IdAndroidCartilla, Qr, Cantidad, Fecha, Hora,
+                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
+                  )
+                  SELECT
+                    IdEntrega, IdAndroidCartilla, Qr, CAST(Cantidad AS REAL), Fecha, Hora,
+                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
+                  FROM ENTREGAS;
+                ''');
+
+              // 3) Borrar tabla vieja
+              await txn.execute('DROP TABLE ENTREGAS;');
+
+              // 4) Renombrar la temporal
+              await txn.execute('ALTER TABLE ENTREGAS_tmp RENAME TO ENTREGAS;');
+            });
+
           }
 
 
-          // you can execute drop table and create table
 
         }
-      },
     );
   }
 
@@ -169,7 +230,7 @@ class DBProvider extends ChangeNotifier {
       ''');
     return List.generate(
       res.length,
-      (index) => QrCartillaResponse(
+          (index) => QrCartillaResponse(
         idcartilla: res[index]['IdCartilla'],
         cuartel: res[index]['Cuartel'],
         labor: res[index]['Labor'],
@@ -201,7 +262,7 @@ class DBProvider extends ChangeNotifier {
 
     return List.generate(
       res.length,
-      (index) => Cartillaqr(
+          (index) => Cartillaqr(
         idAndroidCartilla: res[index]["IdAndroidCartilla"],
         idEmpresa: res[index]["IdEmpresa"],
         idFamilia: res[index]["IdFamilia"],

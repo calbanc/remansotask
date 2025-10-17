@@ -36,7 +36,7 @@ class Cartilladetalle {
     String idCartilla;
     String qr;
     String fecha;
-    int cantidad;
+    double cantidad;
     String nombreTrabajador;
     int idEntrega;
 

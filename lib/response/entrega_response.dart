@@ -4,7 +4,7 @@ class EntregaResponse {
   int identrega;
   String idcartilla;
   String qr;
-  int cantidad;
+  double cantidad;
   String fecha;
   String hora;
   String? swsincronizado;

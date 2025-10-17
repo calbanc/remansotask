@@ -35,7 +35,7 @@ class _detailentregaState extends State<_detailentrega> {
   String nombre = '';
   String digito = '';
   String qr = '';
-  int cantidad = 0;
+  double cantidad = 0;
   String idcartilla = '';
   TextEditingController controlladoridentrega = TextEditingController();
   TextEditingController controlladorcartilla = TextEditingController();
@@ -68,7 +68,7 @@ class _detailentregaState extends State<_detailentrega> {
     identrega = widget.listado.identrega.toString();
     qr = widget.listado.qr.toString();
     ruttrabajador = widget.listado.rut.toString();
-    cantidad = int.parse(widget.listado.cantidad.toString());
+    cantidad = double.parse(widget.listado.cantidad.toString());
     nombre = widget.listado.nombre.toString();
     digito = widget.listado.digito!;
     idcartilla = widget.listado.idcartilla.toString();
@@ -393,7 +393,7 @@ class _detailentregaState extends State<_detailentrega> {
 
                           rut: controlladorrut.text,
                           qr: controlladorqr.text,
-                          cantidad: int.parse(controlladorcantidad.text),
+                          cantidad: double.parse(controlladorcantidad.text),
                           fecha: fecha,
                           hora: hora.toString(),
                           swsincronizado: '0',

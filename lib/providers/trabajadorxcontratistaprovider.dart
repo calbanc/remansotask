@@ -51,7 +51,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   String get IdActividad => _IdActividad;
   bool _swunoauno = false;
 
-  int _totalcantidadentregas = 0;
+  double _totalcantidadentregas = 0;
 
   int _contador = 0;
   int get contador => _contador;
@@ -60,7 +60,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  int get totalcantidadentregas => _totalcantidadentregas;
+  double get totalcantidadentregas => _totalcantidadentregas;
 
   set totalcantidadentregas(value) {
     _totalcantidadentregas = value;
@@ -753,7 +753,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
   Future<int> updateentry(Entrega entry) async {
     final db = await database;
-    int cantidad = entry.cantidad!;
+    double cantidad = entry.cantidad!;
     int? identrega = entry.identrega;
     String? hora = entry.hora;
     String? idempresa = entry.idempresa == null ? null : entry.idempresa!;
@@ -771,7 +771,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
   Future<int> updatetrabajador(Entrega entry) async {
     final db = await database;
-    int cantidad = entry.cantidad!;
+    double cantidad = entry.cantidad!;
     int? identrega = entry.identrega;
     String? hora = entry.hora;
     String? idempresa = entry.idempresa == null ? null : entry.idempresa!;
@@ -791,8 +791,8 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
   Future<int> updateentrycant(ListadoEntregaResponse entrega) async {
     int identrega = entrega.identrega!;
-    int cantidad = entrega.cantidad!;
-    int nuevacantidad = cantidad - 1;
+    double cantidad = entrega.cantidad!;
+    double nuevacantidad = cantidad - 1;
 
     final db = await database;
     final res = await db.rawUpdate('''
@@ -897,7 +897,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     contador = res3.length > 0 ? res3.first['CANT'] as int : 0;
 
     var kd = res2.first;
-    totalcantidadentregas = kd['Cantidad'] as int;
+    totalcantidadentregas = kd['Cantidad'] as double;
   }
 
   Future<List<Trabajador>?> gettrabajadorbyrut(String rut) async {
