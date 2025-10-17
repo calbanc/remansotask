@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:verfwork/const/env.dart';
 import 'package:verfwork/response/response.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import 'package:http/http.dart' as http;
 import '../page/mrz/chile_mrz_parser.dart';
 
 class AddTrabajadorContratistaProvider extends ChangeNotifier {
+  final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
   GlobalKey<FormState> formaddkey = GlobalKey<FormState>();
   TextEditingController controlladornombre = TextEditingController();
 
@@ -35,7 +37,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   String idtrabxcontr = '';
 
   static Database? _database;
-  int cantidad = 0;
+  double cantidad = 0;
   int _cantidadentregas = 0;
   int get CantidadEntregas => _cantidadentregas;
 
