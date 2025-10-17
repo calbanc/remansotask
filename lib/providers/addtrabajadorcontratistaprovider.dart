@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:verfwork/const/env.dart';
 import 'package:verfwork/response/response.dart';
 import 'package:intl/intl.dart';
@@ -11,10 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 
-import '../page/mrz/chile_mrz_parser.dart';
-
 class AddTrabajadorContratistaProvider extends ChangeNotifier {
-  final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
   GlobalKey<FormState> formaddkey = GlobalKey<FormState>();
   TextEditingController controlladornombre = TextEditingController();
 
@@ -37,7 +32,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   String idtrabxcontr = '';
 
   static Database? _database;
-  double cantidad = 0;
+  int cantidad = 0;
   int _cantidadentregas = 0;
   int get CantidadEntregas => _cantidadentregas;
 
@@ -46,14 +41,6 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
 
   bool isValidateForm() {
     return formaddkey.currentState?.validate() ?? false;
-  }
-
-
-  String _path='';
-  String get path => _path;
-  set path(String value) {
-    _path = value;
-    notifyListeners();
   }
 
   bool _isLoading = false;
@@ -248,14 +235,5 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
     return res.isNotEmpty ?
           res.map((e) => Trabajador.fromJson(e)).toList()
           :null;*/
-  }
-
-  Future<void>procesardatos(String path) async{
-    final input = InputImage.fromFilePath(path);
-    final result = await recognizer.processImage(input);
-    final text = result.text;
-    final parsed = ChileMrzParser.parseFromOcr(text);
-    controlladornombre.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
-    controlladorrut.text=' ${parsed.rutDigits}-${parsed.dv}';
   }
 }
