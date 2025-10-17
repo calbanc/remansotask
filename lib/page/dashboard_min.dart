@@ -925,67 +925,7 @@ insertarentrega(
     );
 
     List<Entrega>? listaentregado = await provider.entrega(entrega);
-    if (provider.cartillaseleccionada!.idFamilia == '105' &&
-        provider.cartillaseleccionada!.codEnv != 'null' &&
-        provider.cartillaseleccionada!.maxEnv != null) {
-      int contador = await TrabajadorxContratistaProvider().getcountentrybyid(
-        provider.cartillaseleccionada!.idAndroidCartilla!,
-      );
 
-      Contador_bins contadorbins = Contador_bins(
-        idAndroidCartilla: provider.cartillaseleccionada!.idAndroidCartilla!,
-        cant: contador + 1,
-      );
-      if (int.parse(provider.cartillaseleccionada!.maxEnv!) >= contador + 1) {
-        await TrabajadorxContratistaProvider().insertcontador(contadorbins);
-        if (listaentregado == null) {
-          provider.speak('Entrega ${entrega.cantidad} confirmada');
-          final insert = await provider.insertentry(entrega);
-          List<Cartillaqr>? fechainiciocartilla = await provider
-              .getfechainiciobyidcartilla(
-                provider.cartillaseleccionada!.idAndroidCartilla!,
-              );
-          fechainiciocartilla == null || fechainiciocartilla.length == 0
-              ? null
-              : provider.updatehorainicio(
-                provider.cartillaseleccionada!.idAndroidCartilla!,
-              );
-        } else {
-          DateTime horaentrega = DateTime.parse(listaentregado[0].hora!);
-          Duration diff1 = hora.difference(horaentrega);
-          if (diff1.inSeconds > 3) {
-            Entrega nuevaentrega = Entrega(
-              identrega: listaentregado[0].identrega,
-              nombre: listaentregado[0].nombre,
-              digito: listaentregado[0].digito,
-              rut: listaentregado[0].rut!,
-              idempresa: listaentregado[0].idempresa,
-              IdTrabXContratista: listaentregado[0].IdTrabXContratista,
-              idcartilla: listaentregado[0].idcartilla,
-              qr: listaentregado[0].qr,
-              cantidad: listaentregado[0].cantidad! + 1,
-              fecha: date,
-              hora: hora.toString(),
-              swsincronizado: '0',
-            );
-            final update = await provider.updateentry(nuevaentrega);
-
-            provider.speak('Entrega ${nuevaentrega.cantidad} confirmada');
-            List<Cartillaqr>? fechainiciocartilla = await provider
-                .getfechainiciobyidcartilla(
-                  provider.cartillaseleccionada!.idAndroidCartilla!,
-                );
-            fechainiciocartilla == null || fechainiciocartilla.length == 0
-                ? null
-                : provider.updatehorainicio(
-                  provider.cartillaseleccionada!.idAndroidCartilla!,
-                );
-          }
-        }
-      } else {
-        provider.speak('Debe cerrar el envase antes');
-      }
-    } else {
       if (listaentregado == null) {
         provider.speak('Entrega ${entrega.cantidad} confirmada');
         final insert = await provider.insertentry(entrega);
@@ -1030,7 +970,7 @@ insertarentrega(
               );
         }
       }
-    }
+
   } else {
     late String cantidad;
     showDialog(
@@ -1062,91 +1002,12 @@ insertarentrega(
                   rut: trabajador[0].rut!,
                   idempresa: trabajador[0].idempresa,
                   IdTrabXContratista: trabajador[0].idtrabxcontratista,
-                  cantidad: int.parse(cantidad),
+                  cantidad: double.parse(cantidad),
                   fecha: date,
                   hora: hora.toString(),
                   swsincronizado: '0',
                 );
-                if (provider.cartillaseleccionada!.idFamilia == '105' &&
-                    provider.cartillaseleccionada!.codEnv != 'null') {
-                  int contador = await TrabajadorxContratistaProvider()
-                      .getcountentrybyid(
-                        provider.cartillaseleccionada!.idAndroidCartilla!,
-                      );
 
-                  Contador_bins contadorbins = Contador_bins(
-                    idAndroidCartilla:
-                        provider.cartillaseleccionada!.idAndroidCartilla!,
-                    cant: contador + entrega.cantidad!,
-                  );
-                  if (int.parse(provider.cartillaseleccionada!.maxEnv!) >=
-                      contadorbins.cant!) {
-                    await TrabajadorxContratistaProvider().insertcontador(
-                      contadorbins,
-                    );
-                    List<Entrega>? listaentregado = await provider.entrega(
-                      entrega,
-                    );
-                    if (listaentregado == null) {
-                      provider.speak('Entrega ${entrega.cantidad} confirmada');
-                      final insert = await provider.insertentry(entrega);
-                      List<Cartillaqr>? fechainiciocartilla = await provider
-                          .getfechainiciobyidcartilla(
-                            provider.cartillaseleccionada!.idAndroidCartilla!,
-                          );
-                      fechainiciocartilla == null ||
-                              fechainiciocartilla.length == 0
-                          ? null
-                          : provider.updatehorainicio(
-                            provider.cartillaseleccionada!.idAndroidCartilla!,
-                          );
-                    } else {
-                      DateTime horaentrega = DateTime.parse(
-                        listaentregado[0].hora!,
-                      );
-                      Duration diff1 = hora.difference(horaentrega);
-                      if (diff1.inSeconds > 3) {
-                        Entrega nuevaentrega = Entrega(
-                          identrega: listaentregado[0].identrega,
-                          nombre: listaentregado[0].nombre,
-                          digito: listaentregado[0].digito,
-                          rut: listaentregado[0].rut!,
-                          idempresa: listaentregado[0].idempresa,
-                          IdTrabXContratista:
-                              listaentregado[0].IdTrabXContratista,
-                          idcartilla: listaentregado[0].idcartilla,
-                          qr: listaentregado[0].qr,
-                          cantidad:
-                              listaentregado[0].cantidad! + int.parse(cantidad),
-                          fecha: date,
-                          hora: hora.toString(),
-                          swsincronizado: '0',
-                        );
-                        final update = await provider.updateentry(nuevaentrega);
-
-                        provider.speak(
-                          'Entrega ${nuevaentrega.cantidad} confirmada',
-                        );
-                        List<Cartillaqr>? fechainiciocartilla = await provider
-                            .getfechainiciobyidcartilla(
-                              provider.cartillaseleccionada!.idAndroidCartilla!,
-                            );
-                        fechainiciocartilla == null ||
-                                fechainiciocartilla.length == 0
-                            ? null
-                            : provider.updatehorainicio(
-                              provider.cartillaseleccionada!.idAndroidCartilla!,
-                            );
-                      }
-                    }
-                    provider.listadoentregas(
-                      provider.cartillaseleccionada!.idAndroidCartilla!,
-                    );
-                    Navigator.pop(context);
-                  } else {
-                    //cerrar el envase
-                  }
-                } else {
                   List<Entrega>? listaentregado = await provider.entrega(
                     entrega,
                   );
@@ -1200,7 +1061,7 @@ insertarentrega(
                           : provider.updatehorainicio(
                             provider.cartillaseleccionada!.idAndroidCartilla!,
                           );
-                    }
+
                   }
                   provider.listadoentregas(
                     provider.cartillaseleccionada!.idAndroidCartilla!,
