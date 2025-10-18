@@ -251,9 +251,6 @@ class _datospersonales extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _picker = ImagePicker();
-
-
-
     return Column(
       children: [
         const SizedBox(height: 30),
@@ -369,7 +366,7 @@ class _datospersonales extends StatelessWidget {
           child: TextFormField(
             controller: provider.controllerrut,
 
-            //initialValue: worker.rut!,
+
             validator: (value) {
               return (value == null || value.isEmpty)
                   ? 'Debe ingresar un rut'
@@ -418,8 +415,9 @@ class _datospersonales extends StatelessWidget {
                 int respuesta = await provider.updateworkerentry(
                     rutt,
                     name,
-                    worker.identrega!,
-                    dv
+                    worker,
+                    dv,
+
                 );
                 provider.isloading = false;
 

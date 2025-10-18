@@ -392,7 +392,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       SELECT C.*,(SELECT COUNT(_id) FROM BINS WHERE IdAndroidCartilla=C.IdAndroidCartilla ) as CANT_BINS,C.COD_ENV as 'NOM_ENV'
       FROM CARTILLAS C
       WHERE C.FechaInicio='$fecha' and C.HORATERMINO in ('null' ,'00')
-      order by C.IdAndroidCartilla desc
+      order by C.IdAndroidCartilla asc
       ''');
 
     cartillasdisponibles = List.generate(
@@ -766,6 +766,11 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     String? digito = entry.digito == null ? null : entry.digito!;
     String nombre = entry.nombre;
     String qr = entry.qr!;
+
+    if(cantidad<0){
+      cantidad=0;
+    }
+
     final res = await db.rawUpdate('''
       UPDATE ENTREGAS SET CANTIDAD= '$cantidad' ,
       Nombre='$nombre',Digito='$digito',

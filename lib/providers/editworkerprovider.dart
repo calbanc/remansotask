@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -75,11 +76,13 @@ class EditWorkerProvider extends ChangeNotifier {
   }
 
   Future<int> updateworkerentry(
-      String rut, String nombre, int identrega,String dv) async {
+      String rut, String nombre, ListadoEntregaResponse trabajador,String dv) async {
     final db = await database;
-
+    final now = DateFormat(
+      'dd/MM/yyyy',
+    ).format(DateTime.now());
     final res = await db.rawUpdate('''
-      UPDATE ENTREGAS SET Rut='$rut' , Nombre='$nombre',Digito='$dv' WHERE IdEntrega='$identrega'
+      UPDATE ENTREGAS SET Rut='$rut' , Nombre='$nombre',Digito='$dv' WHERE Qr ='${trabajador.qr}' and Fecha='$now'
     ''');
     return res;
   }
@@ -89,6 +92,7 @@ class EditWorkerProvider extends ChangeNotifier {
     final text = result.text;
     final parsed = ChileMrzParser.parseFromOcr(text);
     controllername.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
+
     controllerrut.text='${parsed.rutDigits}-${parsed.dv}';
     notifyListeners();
   }
@@ -96,7 +100,10 @@ class EditWorkerProvider extends ChangeNotifier {
   void cargardatosiniciales(ListadoEntregaResponse response){
     String dv=response.digito??'';
     if(dv.isNotEmpty){
-      controllerrut.text='${response.rut}-${response.digito}';
+      validarut=true;
+      String rut=response.rut!;
+       if(response.rut!.contains('-',1)) rut=response.rut!.substring(0, response.rut!.indexOf('-'));
+      controllerrut.text='${rut}-${response.digito}';
     }else{
       controllerrut.text=response.rut!;
     }

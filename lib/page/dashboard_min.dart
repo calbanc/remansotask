@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' as googlekit;
 import 'package:image_picker/image_picker.dart';
 import 'package:verfwork/page/addtrabajador.dart';
@@ -257,6 +258,7 @@ class DashboardMain extends StatelessWidget {
                         var result = Map.fromEntries(entries);
                         Cartillaqr qr = Cartillaqr.fromMap(result);
 
+
                         final datefechainicio = DateFormat(
                           'dd/MM/yy',
                         ).parse(qr.fechainicio!);
@@ -266,6 +268,7 @@ class DashboardMain extends StatelessWidget {
                         final fechainicio = DateFormat(
                           'dd/MM/yy',
                         ).format(datefechainicio);
+
 
                         if (now.compareTo(fechainicio) == 0) {
                           List<Cartillaqr> respuesta = await provider
@@ -812,7 +815,7 @@ class _listadoentregas extends StatelessWidget {
                       provider.speak('Entrega eliminada');
                       // add desired output
                     } else if (value == "edit") {
-                      Navigator.push(
+                      final k=await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
@@ -821,6 +824,10 @@ class _listadoentregas extends StatelessWidget {
                               ),
                         ),
                       );
+                       await provider.listadoentregas(
+                        provider.listaentregas[index].idcartilla!,
+                      );
+
 
                       // add desired output
                     } else if (value == "delete") {
@@ -927,7 +934,7 @@ insertarentrega(
     List<Entrega>? listaentregado = await provider.entrega(entrega);
 
       if (listaentregado == null) {
-        provider.speak('Entrega ${entrega.cantidad} confirmada');
+
         final insert = await provider.insertentry(entrega);
         List<Cartillaqr>? fechainiciocartilla = await provider
             .getfechainiciobyidcartilla(
@@ -938,6 +945,13 @@ insertarentrega(
             : provider.updatehorainicio(
               provider.cartillaseleccionada!.idAndroidCartilla!,
             );
+
+        String cantidadFormateada=entrega.cantidad!.toInt().toString();
+
+          // Es un número entero
+
+
+        provider.speak('Entrega ${cantidadFormateada} confirmada');
       } else {
         DateTime horaentrega = DateTime.parse(listaentregado[0].hora!);
         Duration diff1 = hora.difference(horaentrega);
@@ -956,9 +970,21 @@ insertarentrega(
             hora: hora.toString(),
             swsincronizado: '0',
           );
+
+
           final update = await provider.updateentry(nuevaentrega);
 
-          provider.speak('Entrega ${nuevaentrega.cantidad} confirmada');
+
+
+          String cantidadFormateada;
+          if (nuevaentrega.cantidad! % 1 == 0) {
+            // Es un número entero
+            cantidadFormateada = nuevaentrega.cantidad!.toInt().toString();
+          } else {
+            // Tiene decimales
+            cantidadFormateada = nuevaentrega.cantidad.toString();
+          }
+          provider.speak('Entrega ${cantidadFormateada} confirmada');
           List<Cartillaqr>? fechainiciocartilla = await provider
               .getfechainiciobyidcartilla(
                 provider.cartillaseleccionada!.idAndroidCartilla!,
@@ -973,6 +999,9 @@ insertarentrega(
 
   } else {
     late String cantidad;
+    final _finalRegex  = RegExp(r'^(?:\d+|\d+\.\d{2})$');
+    final _typingRegex = RegExp(r'^\d+(\.\d{0,2})?$');
+
     showDialog(
       context: context,
       builder: (context) {
@@ -982,6 +1011,22 @@ insertarentrega(
           cantidad: TextFormField(
             onChanged: (value) => cantidad = value,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              TextInputFormatter.withFunction((oldValue, newValue) {
+                final t = newValue.text;
+                if (t.isEmpty || _typingRegex.hasMatch(t)) return newValue; // permite borrar/editar
+                return oldValue; // bloquea cambios inválidos
+              }),
+            ],
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (v.isEmpty) return 'Ingrese un valor';
+              if (!_finalRegex.hasMatch(v)) return 'Formato inválido. Use "1234" o "1234.56"';
+              // (opcional) si debe ser > 0:
+              final n = double.tryParse(v);
+              if (n == null || n <= 0) return 'Debe ser mayor que 0';
+              return null;
+            },
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(9),
@@ -1012,7 +1057,15 @@ insertarentrega(
                     entrega,
                   );
                   if (listaentregado == null) {
-                    provider.speak('Entrega ${entrega.cantidad} confirmada');
+                    String cantidadFormateada;
+                    if (entrega.cantidad! % 1 == 0) {
+                      // Es un número entero
+                      cantidadFormateada = entrega.cantidad!.toInt().toString();
+                    } else {
+                      // Tiene decimales
+                      cantidadFormateada = entrega.cantidad.toString();
+                    }
+                    provider.speak('Entrega ${cantidadFormateada} confirmada');
                     final insert = await provider.insertentry(entrega);
                     List<Cartillaqr>? fechainiciocartilla = await provider
                         .getfechainiciobyidcartilla(
@@ -1046,10 +1099,19 @@ insertarentrega(
                         hora: hora.toString(),
                         swsincronizado: '0',
                       );
+
+                      String cantidadFormateada;
+                      if (nuevaentrega.cantidad! % 1 == 0) {
+                        // Es un número entero
+                        cantidadFormateada = nuevaentrega.cantidad!.toInt().toString();
+                      } else {
+                        // Tiene decimales
+                        cantidadFormateada = nuevaentrega.cantidad.toString();
+                      }
                       final update = await provider.updateentry(nuevaentrega);
 
                       provider.speak(
-                        'Entrega ${nuevaentrega.cantidad} confirmada',
+                        'Entrega ${cantidadFormateada} confirmada',
                       );
                       List<Cartillaqr>? fechainiciocartilla = await provider
                           .getfechainiciobyidcartilla(
