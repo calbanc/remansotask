@@ -8,8 +8,7 @@ plugins {
 android {
     namespace = "com.mobil.verfwork"
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
-
+    ndkVersion = "28.2.13676358"
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -26,8 +25,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 25
         targetSdk = flutter.targetSdkVersion
-        versionCode = 28
-        versionName = "27"
+        versionCode = 30
+        versionName = "28"
     }
 
     buildTypes {
