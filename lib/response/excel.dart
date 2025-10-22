@@ -6,14 +6,10 @@ class Excelreport {
   String? nomCuartel;
   String? nomContratista;
   String? nomActividad;
-
-
-
   String? qr;
-  int? cantidad;
+  double? cantidad;
   String? fecha;
   String? hora;
-
   String rut;
   String? digito;
   String nombre;
