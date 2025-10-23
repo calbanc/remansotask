@@ -1,4 +1,5 @@
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' as googlekit;
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
+    as googlekit;
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:verfwork/page/DataServerScreen.dart';
@@ -16,7 +17,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../const/env.dart';
-
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -76,14 +76,12 @@ class _Login extends StatelessWidget {
                   final input = googlekit.InputImage.fromFilePath(file.path);
                   final barcodes = await scanner.processImage(input);
 
-                  if(barcodes.isEmpty){
-                    Navigator.pop(context,'');
-                    return ;
+                  if (barcodes.isEmpty) {
+                    Navigator.pop(context, '');
+                    return;
                   }
                   final String? raw = barcodes.first.rawValue;
                   Navigator.pop(context, raw);
-
-
                 },
                 child: const Text(
                   'Seleccionar Qr',
@@ -166,9 +164,13 @@ class _Login extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                    top: 50,
-                    left: MediaQuery.sizeOf(context).width * 0.4,
-                    child: Text('Version: ${Env.versionapp}',style: TextStyle(fontSize: 18,color: Colors.white),)),
+                  top: 50,
+                  left: MediaQuery.sizeOf(context).width * 0.4,
+                  child: Text(
+                    'Version: ${Env.versionapp}',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
                 Positioned(
                   top: MediaQuery.of(context).size.height * 0.25,
                   left: MediaQuery.of(context).size.width * 0.15,
@@ -201,15 +203,13 @@ class _Login extends StatelessWidget {
                                   String str =
                                       await _showActionSheet(context) ?? '';
 
-                                  if(str==''){
-
+                                  if (str == '') {
                                     showDialog(
                                       context: context,
                                       builder: (context) {
                                         return VerfrutApp.Dialogalert(
                                           icono: Icons.cancel,
-                                          mensajecontent:
-                                          'Error en qr ',
+                                          mensajecontent: 'Error en qr ',
                                         );
                                       },
                                     );
@@ -240,15 +240,85 @@ class _Login extends StatelessWidget {
                                             .consultaqr(qr);
                                     if (respuesta.isNotEmpty) {
                                       trabajadorcontratisprovider.speak(
-                                        'Cartilla ya registrada',
+                                        'Cartilla ya registrada ',
                                       );
                                       showDialog(
                                         context: context,
                                         builder: (context) {
-                                          return VerfrutApp.Dialogalert(
-                                            icono: Icons.cancel,
+                                          return VerfrutApp.DialogalertIso(
                                             mensajecontent:
-                                                'Cartilla ya registrada',
+                                                'Cartilla ya registrada,desea abrirla?',
+                                            action: SizedBox(
+                                              width:
+                                                  MediaQuery.of(
+                                                    context,
+                                                  ).size.width *
+                                                  0.5,
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: ElevatedButton(
+                                                      style:
+                                                          ElevatedButton.styleFrom(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                          ),
+                                                      onPressed: () async {
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop();
+                                                      },
+                                                      child: Text(
+                                                        'No',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 10),
+                                                  Expanded(
+                                                    child: ElevatedButton(
+                                                      style:
+                                                          ElevatedButton.styleFrom(
+                                                            backgroundColor:
+                                                                Color.fromRGBO(
+                                                                  36,
+                                                                  99,
+                                                                  175,
+                                                                  1,
+                                                                ),
+                                                          ),
+                                                      onPressed: () async {
+                                                        await trabajadorcontratisprovider
+                                                            .abrircartilla(
+                                                              qr.idAndroidCartilla!,
+                                                            );
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop();
+
+                                                        Navigator.push(
+                                                          context,
+
+                                                          PageRouteBuilder(
+                                                            pageBuilder:
+                                                                (_, __, ___) =>
+                                                                    MainDashboard(),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Text(
+                                                        'Si',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           );
                                         },
                                       );
@@ -274,64 +344,88 @@ class _Login extends StatelessWidget {
                                           ),
                                         },
                                       );
-
-
                                     }
                                   } else {
                                     trabajadorcontratisprovider.speak(
                                       'Fecha de termino concluida',
                                     );
 
-
                                     showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            //  title: Text( title! ,style: TextStyle(fontFamily: 'MontserratR'),) ,
-                                            content: SizedBox(
-                                              height: 220,
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  SvgPicture.asset('assets/isologo.svg'),
-                                                  SizedBox(height: 10),
-                                                  Text('Fecha de termino concluida, desea visualizar registros de cartilla', style: TextStyle(fontFamily: 'MontserratR')),
-                                                  SizedBox(height: 10),
-                                                  ElevatedButton(
-                                                    style: ElevatedButton.styleFrom(
-                                                      backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12), // <-- Radius
-                                                      ),
-                                                    ),
-                                                    onPressed: () async  {
-                                                      bool conectado = await Connectivity_provider().isOnlineNet();
-                                                      if (conectado) {
-                                                        Navigator.pop(context);
-
-
-                                                        final result = await Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder:
-                                                                (context) => DataServerScreen(cartilla: qr,
-
-                                                            ),
-                                                          ),
-                                                        );
-                                                      } else {
-                                                        Navigator.pop(context);
-                                                      }
-                                                    },
-                                                    child: Text('Ver Datos',style: TextStyle(color: Colors.white,fontFamily: 'MontserratB'),),
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          //  title: Text( title! ,style: TextStyle(fontFamily: 'MontserratR'),) ,
+                                          content: SizedBox(
+                                            height: 220,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                SvgPicture.asset(
+                                                  'assets/isologo.svg',
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                  'Fecha de termino concluida, desea visualizar registros de cartilla',
+                                                  style: TextStyle(
+                                                    fontFamily: 'MontserratR',
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        }
+                                                ),
+                                                SizedBox(height: 10),
+                                                ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color.fromRGBO(
+                                                          59,
+                                                          131,
+                                                          216,
+                                                          1,
+                                                        ),
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ), // <-- Radius
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    bool conectado =
+                                                        await Connectivity_provider()
+                                                            .isOnlineNet();
+                                                    if (conectado) {
+                                                      Navigator.pop(context);
 
+                                                      final result =
+                                                          await Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder:
+                                                                  (context) =>
+                                                                      DataServerScreen(
+                                                                        cartilla:
+                                                                            qr,
+                                                                      ),
+                                                            ),
+                                                          );
+                                                    } else {
+                                                      Navigator.pop(context);
+                                                    }
+                                                  },
+                                                  child: Text(
+                                                    'Ver Datos',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontFamily: 'MontserratB',
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     );
                                   }
                                 } catch (e) {

@@ -1,7 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/services.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' as googlekit;
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
+    as googlekit;
 import 'package:image_picker/image_picker.dart';
 import 'package:verfwork/page/addtrabajador.dart';
 import 'package:verfwork/page/detailworker.dart';
@@ -34,69 +35,70 @@ class DashboardMain extends StatelessWidget {
         context: context,
         builder:
             (BuildContext context) => CupertinoActionSheet(
-          title: const Text('Opciones'),
-          actions: <CupertinoActionSheetAction>[
-            CupertinoActionSheetAction(
-              onPressed: () async {
-                final String qr = await VerfrutApp().scanqr(context);
-                Navigator.pop(context, qr);
+              title: const Text('Opciones'),
+              actions: <CupertinoActionSheetAction>[
+                CupertinoActionSheetAction(
+                  onPressed: () async {
+                    final String qr = await VerfrutApp().scanqr(context);
+                    Navigator.pop(context, qr);
 
-                //Navigator.pop(context, 'camera'); // devuelve la opción
-              },
-              child: const Text(
-                'Scanear qr',
-                style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
-              ),
-            ),
-            CupertinoActionSheetAction(
-              onPressed: () async {
-                final picker = ImagePicker();
-                final XFile? file = await picker.pickImage(
-                  source: ImageSource.gallery,
-                );
-                if (file == null) return;
-                final scanner = googlekit.BarcodeScanner(
-                  formats: [
-                    googlekit.BarcodeFormat.qrCode,
-                  ], // fuerza solo QR
-                );
-
-                final input = googlekit.InputImage.fromFilePath(file.path);
-                final barcodes = await scanner.processImage(input);
-
-                if (barcodes.isEmpty) {
-                  Navigator.pop(context, '');
-                  return;
-                }
-                final String? raw = barcodes.first.rawValue;
-                Navigator.pop(context, raw);
-              },
-              child: const Text(
-                'Seleccionar Qr',
-                style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
-              ),
-            ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () {
-                Navigator.pop(
-                  context,
-                  'cancelar',
-                ); // puedes devolver null si prefieres
-              },
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'MontserratR',
-                  fontWeight: FontWeight.bold,
+                    //Navigator.pop(context, 'camera'); // devuelve la opción
+                  },
+                  child: const Text(
+                    'Scanear qr',
+                    style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
+                  ),
                 ),
-              ),
+                CupertinoActionSheetAction(
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final XFile? file = await picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (file == null) return;
+                    final scanner = googlekit.BarcodeScanner(
+                      formats: [
+                        googlekit.BarcodeFormat.qrCode,
+                      ], // fuerza solo QR
+                    );
+
+                    final input = googlekit.InputImage.fromFilePath(file.path);
+                    final barcodes = await scanner.processImage(input);
+
+                    if (barcodes.isEmpty) {
+                      Navigator.pop(context, '');
+                      return;
+                    }
+                    final String? raw = barcodes.first.rawValue;
+                    Navigator.pop(context, raw);
+                  },
+                  child: const Text(
+                    'Seleccionar Qr',
+                    style: TextStyle(fontSize: 12, fontFamily: 'MontserratR'),
+                  ),
+                ),
+                CupertinoActionSheetAction(
+                  isDestructiveAction: true,
+                  onPressed: () {
+                    Navigator.pop(
+                      context,
+                      'cancelar',
+                    ); // puedes devolver null si prefieres
+                  },
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'MontserratR',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
+
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(
         title: 'FrutApp Job',
@@ -191,8 +193,7 @@ class DashboardMain extends StatelessWidget {
                 ),
               ),
 
-              
-             //provider.cartillasdisponibles.isEmpty ? const _RedirectToLogin() :  _cartillasCuarteles(provider: provider),
+              //provider.cartillasdisponibles.isEmpty ? const _RedirectToLogin() :  _cartillasCuarteles(provider: provider),
               _cartillasCuarteles(provider: provider),
               Container(
                 child: Row(
@@ -224,9 +225,10 @@ class DashboardMain extends StatelessWidget {
                         value: provider.swunoauno,
                         onChanged: (bool? value) {
                           provider.swunoauno = value!;
-                          provider.cambiartipolectura(provider.cartillaseleccionada!, value);
-
-
+                          provider.cambiartipolectura(
+                            provider.cartillaseleccionada!,
+                            value,
+                          );
                         },
                       ),
                     ),
@@ -258,7 +260,6 @@ class DashboardMain extends StatelessWidget {
                         var result = Map.fromEntries(entries);
                         Cartillaqr qr = Cartillaqr.fromMap(result);
 
-
                         final datefechainicio = DateFormat(
                           'dd/MM/yy',
                         ).parse(qr.fechainicio!);
@@ -269,18 +270,72 @@ class DashboardMain extends StatelessWidget {
                           'dd/MM/yy',
                         ).format(datefechainicio);
 
-
                         if (now.compareTo(fechainicio) == 0) {
                           List<Cartillaqr> respuesta = await provider
                               .consultaqr(qr);
                           if (respuesta.length > 0) {
                             provider.speak('Cartilla ya registrada');
+
                             showDialog(
                               context: context,
                               builder: (context) {
-                                return VerfrutApp.Dialogalert(
-                                  icono: Icons.cancel,
-                                  mensajecontent: 'Cartilla ya registrada',
+                                return VerfrutApp.DialogalertIso(
+                                  mensajecontent:
+                                      'Cartilla ya registrada,desea abrirla?',
+                                  action: SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.5,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.red,
+                                            ),
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(
+                                              'No',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),
+                                        Expanded(
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Color.fromRGBO(
+                                                36,
+                                                99,
+                                                175,
+                                                1,
+                                              ),
+                                            ),
+                                            onPressed: () async {
+                                              await provider.abrircartilla(
+                                                qr.idAndroidCartilla!,
+                                              );
+
+                                              await provider
+                                                  .getcartillasdisponibles();
+                                              provider.cartillaseleccionada =
+                                                  qr;
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(
+                                              'Si',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 );
                               },
                             );
@@ -305,11 +360,11 @@ class DashboardMain extends StatelessWidget {
                           context: context,
                           builder:
                               (BuildContext context) => CupertinoAlertDialog(
-                            title: Text("Qr Invalido"),
-                            content: Text(
-                              "Estimado usuario QR escaneado no es valido, fecha de termino ya concluida $e",
-                            ),
-                          ),
+                                title: Text("Qr Invalido"),
+                                content: Text(
+                                  "Estimado usuario QR escaneado no es valido, fecha de termino ya concluida $e",
+                                ),
+                              ),
                         );
                       }
                     },
@@ -362,8 +417,6 @@ class DashboardMain extends StatelessWidget {
                             .gettrabajadorbyqr(barcodeScanRes, idcartilla);
 
                         if (lista!.isEmpty) {
-
-
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -385,8 +438,6 @@ class DashboardMain extends StatelessWidget {
                             context,
                           );
                         }
-
-
                       }
                     },
                     child: const Text(
@@ -495,21 +546,50 @@ class _bottombar extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
                       ),
-                      onPressed: () async{
-                        await provider.updatehoratermino(
-                          provider.cartillaseleccionada!.idAndroidCartilla!,
-                        );
-                        provider.speak('Cartilla cerrada correctamente');
-
-                        if(provider.cartillasdisponibles.isEmpty){
-                          Navigator.pushReplacementNamed(
-                            context,
-                            'login',
+                      onPressed: () async {
+                        try {
+                          await provider.updatehoratermino(
+                            provider.cartillaseleccionada!.idAndroidCartilla!,
                           );
-                          return;
-                        }
 
-                        Navigator.pop(context);
+                          List<Cartillaqr> respuestacartilla = await provider
+                              .getcartillastosync(false);
+
+                          for (Cartillaqr lista in respuestacartilla) {
+                            String mensaje = await provider.synccartillashoras(
+                              lista,
+                            );
+                            if (mensaje == 'error') {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return VerfrutApp.Dialogalert(
+                                    icono: Icons.cancel,
+                                    mensajecontent:
+                                        'Error sincronizando cartillas',
+                                  );
+                                },
+                              );
+                            }
+                          }
+
+                          if (provider.cartillasdisponibles.isEmpty) {
+                            Navigator.pushReplacementNamed(context, 'login');
+                            return;
+                          }
+
+                          Navigator.pop(context);
+                        } catch (e) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return VerfrutApp.Dialogalert(
+                                icono: Icons.cancel,
+                                mensajecontent: 'error sincronizando datos $e',
+                              );
+                            },
+                          );
+                        }
                       },
                       child: const Text(
                         'Cerrar',
@@ -564,7 +644,6 @@ class _cartillasCuarteles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.23,
@@ -639,8 +718,6 @@ class _cartillasCuarteles extends StatelessWidget {
                                 child: Image.asset('assets/cuartel.png'),
                               ),
                             ),
-
-
                           ],
                         ),
 
@@ -815,7 +892,7 @@ class _listadoentregas extends StatelessWidget {
                       provider.speak('Entrega eliminada');
                       // add desired output
                     } else if (value == "edit") {
-                      final k=await Navigator.push(
+                      final k = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
@@ -824,10 +901,9 @@ class _listadoentregas extends StatelessWidget {
                               ),
                         ),
                       );
-                       await provider.listadoentregas(
+                      await provider.listadoentregas(
                         provider.listaentregas[index].idcartilla!,
                       );
-
 
                       // add desired output
                     } else if (value == "delete") {
@@ -933,9 +1009,53 @@ insertarentrega(
 
     List<Entrega>? listaentregado = await provider.entrega(entrega);
 
-      if (listaentregado == null) {
+    if (listaentregado == null) {
+      final insert = await provider.insertentry(entrega);
+      List<Cartillaqr>? fechainiciocartilla = await provider
+          .getfechainiciobyidcartilla(
+            provider.cartillaseleccionada!.idAndroidCartilla!,
+          );
+      fechainiciocartilla == null || fechainiciocartilla.length == 0
+          ? null
+          : provider.updatehorainicio(
+            provider.cartillaseleccionada!.idAndroidCartilla!,
+          );
 
-        final insert = await provider.insertentry(entrega);
+      String cantidadFormateada = entrega.cantidad!.toInt().toString();
+
+      // Es un número entero
+
+      provider.speak('Entrega ${cantidadFormateada} confirmada');
+    } else {
+      DateTime horaentrega = DateTime.parse(listaentregado[0].hora!);
+      Duration diff1 = hora.difference(horaentrega);
+      if (diff1.inSeconds > 3) {
+        Entrega nuevaentrega = Entrega(
+          identrega: listaentregado[0].identrega,
+          nombre: listaentregado[0].nombre,
+          digito: listaentregado[0].digito,
+          rut: listaentregado[0].rut!,
+          idempresa: listaentregado[0].idempresa,
+          IdTrabXContratista: listaentregado[0].IdTrabXContratista,
+          idcartilla: listaentregado[0].idcartilla,
+          qr: listaentregado[0].qr,
+          cantidad: listaentregado[0].cantidad! + 1,
+          fecha: date,
+          hora: hora.toString(),
+          swsincronizado: '0',
+        );
+
+        final update = await provider.updateentry(nuevaentrega);
+
+        String cantidadFormateada;
+        if (nuevaentrega.cantidad! % 1 == 0) {
+          // Es un número entero
+          cantidadFormateada = nuevaentrega.cantidad!.toInt().toString();
+        } else {
+          // Tiene decimales
+          cantidadFormateada = nuevaentrega.cantidad.toString();
+        }
+        provider.speak('Entrega ${cantidadFormateada} confirmada');
         List<Cartillaqr>? fechainiciocartilla = await provider
             .getfechainiciobyidcartilla(
               provider.cartillaseleccionada!.idAndroidCartilla!,
@@ -945,61 +1065,11 @@ insertarentrega(
             : provider.updatehorainicio(
               provider.cartillaseleccionada!.idAndroidCartilla!,
             );
-
-        String cantidadFormateada=entrega.cantidad!.toInt().toString();
-
-          // Es un número entero
-
-
-        provider.speak('Entrega ${cantidadFormateada} confirmada');
-      } else {
-        DateTime horaentrega = DateTime.parse(listaentregado[0].hora!);
-        Duration diff1 = hora.difference(horaentrega);
-        if (diff1.inSeconds > 3) {
-          Entrega nuevaentrega = Entrega(
-            identrega: listaentregado[0].identrega,
-            nombre: listaentregado[0].nombre,
-            digito: listaentregado[0].digito,
-            rut: listaentregado[0].rut!,
-            idempresa: listaentregado[0].idempresa,
-            IdTrabXContratista: listaentregado[0].IdTrabXContratista,
-            idcartilla: listaentregado[0].idcartilla,
-            qr: listaentregado[0].qr,
-            cantidad: listaentregado[0].cantidad! + 1,
-            fecha: date,
-            hora: hora.toString(),
-            swsincronizado: '0',
-          );
-
-
-          final update = await provider.updateentry(nuevaentrega);
-
-
-
-          String cantidadFormateada;
-          if (nuevaentrega.cantidad! % 1 == 0) {
-            // Es un número entero
-            cantidadFormateada = nuevaentrega.cantidad!.toInt().toString();
-          } else {
-            // Tiene decimales
-            cantidadFormateada = nuevaentrega.cantidad.toString();
-          }
-          provider.speak('Entrega ${cantidadFormateada} confirmada');
-          List<Cartillaqr>? fechainiciocartilla = await provider
-              .getfechainiciobyidcartilla(
-                provider.cartillaseleccionada!.idAndroidCartilla!,
-              );
-          fechainiciocartilla == null || fechainiciocartilla.length == 0
-              ? null
-              : provider.updatehorainicio(
-                provider.cartillaseleccionada!.idAndroidCartilla!,
-              );
-        }
       }
-
+    }
   } else {
     late String cantidad;
-    final _finalRegex  = RegExp(r'^(?:\d+|\d+\.\d{2})$');
+    final _finalRegex = RegExp(r'^(?:\d+|\d+\.\d{2})$');
     final _typingRegex = RegExp(r'^\d+(\.\d{0,2})?$');
 
     showDialog(
@@ -1014,14 +1084,16 @@ insertarentrega(
             inputFormatters: [
               TextInputFormatter.withFunction((oldValue, newValue) {
                 final t = newValue.text;
-                if (t.isEmpty || _typingRegex.hasMatch(t)) return newValue; // permite borrar/editar
+                if (t.isEmpty || _typingRegex.hasMatch(t))
+                  return newValue; // permite borrar/editar
                 return oldValue; // bloquea cambios inválidos
               }),
             ],
             validator: (value) {
               final v = value?.trim() ?? '';
               if (v.isEmpty) return 'Ingrese un valor';
-              if (!_finalRegex.hasMatch(v)) return 'Formato inválido. Use "1234" o "1234.56"';
+              if (!_finalRegex.hasMatch(v))
+                return 'Formato inválido. Use "1234" o "1234.56"';
               // (opcional) si debe ser > 0:
               final n = double.tryParse(v);
               if (n == null || n <= 0) return 'Debe ser mayor que 0';
@@ -1053,20 +1125,61 @@ insertarentrega(
                   swsincronizado: '0',
                 );
 
-                  List<Entrega>? listaentregado = await provider.entrega(
-                    entrega,
+                List<Entrega>? listaentregado = await provider.entrega(entrega);
+                if (listaentregado == null) {
+                  String cantidadFormateada;
+                  if (entrega.cantidad! % 1 == 0) {
+                    // Es un número entero
+                    cantidadFormateada = entrega.cantidad!.toInt().toString();
+                  } else {
+                    // Tiene decimales
+                    cantidadFormateada = entrega.cantidad.toString();
+                  }
+                  provider.speak('Entrega ${cantidadFormateada} confirmada');
+                  final insert = await provider.insertentry(entrega);
+                  List<Cartillaqr>? fechainiciocartilla = await provider
+                      .getfechainiciobyidcartilla(
+                        provider.cartillaseleccionada!.idAndroidCartilla!,
+                      );
+                  fechainiciocartilla == null || fechainiciocartilla.length == 0
+                      ? null
+                      : provider.updatehorainicio(
+                        provider.cartillaseleccionada!.idAndroidCartilla!,
+                      );
+                } else {
+                  DateTime horaentrega = DateTime.parse(
+                    listaentregado[0].hora!,
                   );
-                  if (listaentregado == null) {
+                  Duration diff1 = hora.difference(horaentrega);
+                  if (diff1.inSeconds > 3) {
+                    Entrega nuevaentrega = Entrega(
+                      identrega: listaentregado[0].identrega,
+                      nombre: listaentregado[0].nombre,
+                      digito: listaentregado[0].digito,
+                      rut: listaentregado[0].rut!,
+                      idempresa: listaentregado[0].idempresa,
+                      IdTrabXContratista: listaentregado[0].IdTrabXContratista,
+                      idcartilla: listaentregado[0].idcartilla,
+                      qr: listaentregado[0].qr,
+                      cantidad:
+                          listaentregado[0].cantidad! + double.parse(cantidad),
+                      fecha: date,
+                      hora: hora.toString(),
+                      swsincronizado: '0',
+                    );
+
                     String cantidadFormateada;
-                    if (entrega.cantidad! % 1 == 0) {
+                    if (nuevaentrega.cantidad! % 1 == 0) {
                       // Es un número entero
-                      cantidadFormateada = entrega.cantidad!.toInt().toString();
+                      cantidadFormateada =
+                          nuevaentrega.cantidad!.toInt().toString();
                     } else {
                       // Tiene decimales
-                      cantidadFormateada = entrega.cantidad.toString();
+                      cantidadFormateada = nuevaentrega.cantidad.toString();
                     }
+                    final update = await provider.updateentry(nuevaentrega);
+
                     provider.speak('Entrega ${cantidadFormateada} confirmada');
-                    final insert = await provider.insertentry(entrega);
                     List<Cartillaqr>? fechainiciocartilla = await provider
                         .getfechainiciobyidcartilla(
                           provider.cartillaseleccionada!.idAndroidCartilla!,
@@ -1077,53 +1190,6 @@ insertarentrega(
                         : provider.updatehorainicio(
                           provider.cartillaseleccionada!.idAndroidCartilla!,
                         );
-                  } else {
-                    DateTime horaentrega = DateTime.parse(
-                      listaentregado[0].hora!,
-                    );
-                    Duration diff1 = hora.difference(horaentrega);
-                    if (diff1.inSeconds > 3) {
-                      Entrega nuevaentrega = Entrega(
-                        identrega: listaentregado[0].identrega,
-                        nombre: listaentregado[0].nombre,
-                        digito: listaentregado[0].digito,
-                        rut: listaentregado[0].rut!,
-                        idempresa: listaentregado[0].idempresa,
-                        IdTrabXContratista:
-                            listaentregado[0].IdTrabXContratista,
-                        idcartilla: listaentregado[0].idcartilla,
-                        qr: listaentregado[0].qr,
-                        cantidad:
-                            listaentregado[0].cantidad! + double.parse(cantidad),
-                        fecha: date,
-                        hora: hora.toString(),
-                        swsincronizado: '0',
-                      );
-
-                      String cantidadFormateada;
-                      if (nuevaentrega.cantidad! % 1 == 0) {
-                        // Es un número entero
-                        cantidadFormateada = nuevaentrega.cantidad!.toInt().toString();
-                      } else {
-                        // Tiene decimales
-                        cantidadFormateada = nuevaentrega.cantidad.toString();
-                      }
-                      final update = await provider.updateentry(nuevaentrega);
-
-                      provider.speak(
-                        'Entrega ${cantidadFormateada} confirmada',
-                      );
-                      List<Cartillaqr>? fechainiciocartilla = await provider
-                          .getfechainiciobyidcartilla(
-                            provider.cartillaseleccionada!.idAndroidCartilla!,
-                          );
-                      fechainiciocartilla == null ||
-                              fechainiciocartilla.length == 0
-                          ? null
-                          : provider.updatehorainicio(
-                            provider.cartillaseleccionada!.idAndroidCartilla!,
-                          );
-
                   }
                   provider.listadoentregas(
                     provider.cartillaseleccionada!.idAndroidCartilla!,
@@ -1217,13 +1283,25 @@ Future<void> sincronizaciontrabajadores(
         builder: (context) {
           return VerfrutApp.Dialogalert(
             icono: Icons.cancel,
-            mensajecontent: 'Error sincronizando entregas',
+            mensajecontent: 'Cartilla sincronizando cartillas ',
+          );
+        },
+      );
+    }
+    if (message == 'aprobada') {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return VerfrutApp.Dialogalert(
+            icono: Icons.cancel,
+            mensajecontent: 'Cartilla ya fue aprobada  ',
           );
         },
       );
     }
   }
 }
+
 class _RedirectToLogin extends StatelessWidget {
   const _RedirectToLogin({super.key});
 
@@ -1233,7 +1311,7 @@ class _RedirectToLogin extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const Login()),
-            (route) => false,
+        (route) => false,
       );
     });
     // no pinta nada

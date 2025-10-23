@@ -14,25 +14,26 @@ import 'package:path/path.dart';
 
 import '../response/DataserverResponse.dart';
 
-
 class DataServerScreen extends StatelessWidget {
   Cartillaqr cartilla;
-  DataServerScreen({super.key,required this.cartilla});
+  DataServerScreen({super.key, required this.cartilla});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(create: (_)=>dataServerProvider(),child: _dataServerScreen(cartillaqr: cartilla,),);
+    return ChangeNotifierProvider(
+      create: (_) => dataServerProvider(),
+      child: _dataServerScreen(cartillaqr: cartilla),
+    );
   }
 }
 
-
 class _dataServerScreen extends StatelessWidget {
   Cartillaqr cartillaqr;
-  _dataServerScreen({super.key,required this.cartillaqr});
+  _dataServerScreen({super.key, required this.cartillaqr});
 
   @override
   Widget build(BuildContext context) {
-    final provider=Provider.of<dataServerProvider>(context);
+    final provider = Provider.of<dataServerProvider>(context);
 
     Future<void> createreportexcel(List<Entregas> listaexcel) async {
       Excel excel = Excel.createExcel();
@@ -146,8 +147,6 @@ class _dataServerScreen extends StatelessWidget {
         );
         cellfecha.value = TextCellValue(cartillaqr.fechainicio!);
 
-
-
         var cellrut = sheet.cell(
           CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: j),
         );
@@ -166,7 +165,9 @@ class _dataServerScreen extends StatelessWidget {
         var cellcantidad = sheet.cell(
           CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: j),
         );
-        cellcantidad.value = TextCellValue(listaexcel[i].unidadProducida.toString()!);
+        cellcantidad.value = TextCellValue(
+          listaexcel[i].unidadProducida.toString()!,
+        );
 
         j++;
       }
@@ -180,33 +181,27 @@ class _dataServerScreen extends StatelessWidget {
           ..writeAsBytesSync(fileBytes);
       }
     }
+
     return Scaffold(
-      appBar: VerfrutApp.Verfrutapp(title: 'Datos de Cartilla',action: IconButton(onPressed: ()async{
-
-
-
-
-
-
-        var directory =
-            (await getApplicationDocumentsDirectory()).path;
-        Share.shareXFiles([
-          XFile('$directory/Informe_labores.xlsx'),
-        ], text: 'Compartir informe');
-
-
-
-
-      }, icon: Icon(Icons.share,color: Colors.white,))),
+      appBar: VerfrutApp.Verfrutapp(
+        title: 'Datos de Cartilla',
+        action: IconButton(
+          onPressed: () async {
+            var directory = (await getApplicationDocumentsDirectory()).path;
+            Share.shareXFiles([
+              XFile('$directory/Informe_labores.xlsx'),
+            ], text: 'Compartir informe');
+          },
+          icon: Icon(Icons.share, color: Colors.white),
+        ),
+      ),
       body: Column(
         children: [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.18,
             width: 190,
             child: Card(
-              color:
-              Color.fromRGBO(36, 99, 174, 1)
-              ,
+              color: Color.fromRGBO(36, 99, 174, 1),
               shape: RoundedRectangleBorder(
                 side: const BorderSide(
                   width: 1,
@@ -226,12 +221,7 @@ class _dataServerScreen extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 5),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color.fromRGBO(
-                                210,
-                                172,
-                                130,
-                                0.5,
-                              ),
+                              color: const Color.fromRGBO(210, 172, 130, 0.5),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             height: 50,
@@ -239,28 +229,23 @@ class _dataServerScreen extends StatelessWidget {
                             child: Image.asset('assets/cuartel.png'),
                           ),
                         ),
-
-
                       ],
                     ),
 
                     Text(
                       cartillaqr.nomCuartel!,
                       style: TextStyle(
-                          fontFamily: 'MontserratR',
-                          fontSize: 14,
-                          color:
-                          Colors.white
-
+                        fontFamily: 'MontserratR',
+                        fontSize: 14,
+                        color: Colors.white,
                       ),
                     ),
                     Text(
                       cartillaqr.nomVariedad!,
                       style: TextStyle(
-                          fontFamily: 'MontserratR',
-                          fontSize: 10,
-                          color:
-                          Colors.white
+                        fontFamily: 'MontserratR',
+                        fontSize: 10,
+                        color: Colors.white,
                       ),
                     ),
                     Text(
@@ -268,29 +253,23 @@ class _dataServerScreen extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'MontserratR',
                         fontSize: 10,
-                        color:
-                        Colors.white
-                        ,
+                        color: Colors.white,
                       ),
                     ),
-
-
                   ],
                 ),
               ),
             ),
           ),
 
-
           FutureBuilder(
             future: provider.getentregasbycartilla(cartillaqr),
-            builder: (context,AsyncSnapshot<http.Response> snapshot) {
+            builder: (context, AsyncSnapshot<http.Response> snapshot) {
               if (snapshot.hasData) {
-                http.Response respuesta=snapshot.data!;
-                if(respuesta.statusCode==200){
-                  final response=dataserverResponseFromMap(respuesta.body);
+                http.Response respuesta = snapshot.data!;
+                if (respuesta.statusCode == 200) {
+                  final response = dataserverResponseFromMap(respuesta.body);
                   List<Entregas> lista = response.entregas ?? [];
-
 
                   createreportexcel(lista);
                   return SingleChildScrollView(
@@ -299,36 +278,68 @@ class _dataServerScreen extends StatelessWidget {
                       child: DataTable(
                         columnSpacing: 20,
                         columns: const [
-                          DataColumn(label: Text('N°', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('QR', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('RUT', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('DV', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('Nombre', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('Unidad Producida', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(
+                            label: Text(
+                              'N°',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'QR',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'RUT',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'DV',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Nombre',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Unidad Producida',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ],
-                        rows: lista.map((entrega) => DataRow(
-                          cells: [
-                            DataCell(Text(entrega.qr ?? '')),
-                            DataCell(Text(entrega.qr ?? '')),
-                            DataCell(Text(entrega.rut ?? '')),
-                            DataCell(Text(entrega.dv ?? '')),
-                            DataCell(Text(entrega.nombre ?? '')),
-                            DataCell(Text(entrega.unidadProducida ?? '')),
-                          ],
-                        )).toList(),
+                        rows:
+                            lista
+                                .map(
+                                  (entrega) => DataRow(
+                                    cells: [
+                                      DataCell(Text(entrega.qr ?? '')),
+                                      DataCell(Text(entrega.qr ?? '')),
+                                      DataCell(Text(entrega.rut ?? '')),
+                                      DataCell(Text(entrega.dv ?? '')),
+                                      DataCell(Text(entrega.nombre ?? '')),
+                                      DataCell(
+                                        Text(entrega.unidadProducida ?? ''),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ),
                   );
                 } else {
-                  return Center(
-                    child: Text(snapshot.data!.body),
-                  );
+                  return Center(child: Text(snapshot.data!.body));
                 }
-
               } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
             },
           ),
@@ -336,6 +347,4 @@ class _dataServerScreen extends StatelessWidget {
       ),
     );
   }
-
-
 }

@@ -25,8 +25,6 @@ import '../response/excel.dart';
 import '../response/qrcartilla_response.dart';
 
 class TrabajadorxContratistaProvider extends ChangeNotifier {
-
-
   TextEditingController maxenvController = TextEditingController(text: '');
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   GlobalKey<FormState> formkey2 = GlobalKey<FormState>();
@@ -77,7 +75,8 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-  String _path='';
+
+  String _path = '';
   String get path => _path;
   set path(String value) {
     _path = value;
@@ -263,7 +262,6 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     DBProvider.db.initDB();
     initLanguages();
     getcartillasdisponibles();
-
   }
 
   void speak(String text) {
@@ -309,8 +307,6 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       return 0;
     }
   }
-
-
 
   Future<List<Actividade>> getlabores() async {
     final db = await database;
@@ -378,11 +374,16 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       await updateSync(entrega.identrega.toString()!);
       return 'ok';
     } else {
-      return 'error';
+      if (response.statusCode == 500) {
+        await updateSync(entrega.identrega.toString()!);
+        return 'aprobada';
+      } else {
+        return 'error';
+      }
     }
   }
 
- Future<void> getcartillasdisponibles() async {
+  Future<void> getcartillasdisponibles() async {
     final now = DateTime.now();
 
     var fecha = DateFormat('dd/MM/yyyy').format(now);
@@ -718,7 +719,6 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     final date = DateFormat('dd/MM/yyyy').format(today);
     final db = await database;
 
-
     final List<Map<String, dynamic>> res = await db.rawQuery('''
       SELECT *
       FROM ENTREGAS T
@@ -767,8 +767,8 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     String nombre = entry.nombre;
     String qr = entry.qr!;
 
-    if(cantidad<0){
-      cantidad=0;
+    if (cantidad < 0) {
+      cantidad = 0;
     }
 
     final res = await db.rawUpdate('''
@@ -844,7 +844,9 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
     await getcartillasdisponibles();
 
-    cartillasdisponibles.isNotEmpty ?  cartillaseleccionada = cartillasdisponibles[0]:null;
+    cartillasdisponibles.isNotEmpty
+        ? cartillaseleccionada = cartillasdisponibles[0]
+        : null;
     notifyListeners();
   }
 
@@ -1024,15 +1026,21 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     cartillaseleccionada = qrcartilla;
     return res;
   }
-  Future<bool>dataavailabletosync()async{
-    final db=await database;
-    final res=await db.query('ENTREGAS',where: 'SwSincronizado=?',whereArgs: ['0']);
-    if(res.isNotEmpty){
+
+  Future<bool> dataavailabletosync() async {
+    final db = await database;
+    final res = await db.query(
+      'ENTREGAS',
+      where: 'SwSincronizado=?',
+      whereArgs: ['0'],
+    );
+    if (res.isNotEmpty) {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
+
   Future<int> cambiartipolectura(Cartillaqr cartilla, bool valor) async {
     try {
       final db = await database;
@@ -1046,10 +1054,10 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
 
       // Update the database
       final res = await db.update(
-          'CARTILLAS',
-          {'SwUnoaUno': valor2},
-          where: 'IdAndroidCartilla = ?',
-          whereArgs: [cartilla.idAndroidCartilla]
+        'CARTILLAS',
+        {'SwUnoaUno': valor2},
+        where: 'IdAndroidCartilla = ?',
+        whereArgs: [cartilla.idAndroidCartilla],
       );
 
       notifyListeners();
@@ -1060,4 +1068,11 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     }
   }
 
+  Future<int> abrircartilla(String idcartilla) async {
+    final db = await database;
+    final res = await db.rawUpdate(''' 
+     UPDATE CARTILLAS SET HoraTermino='null', SwSincronizado='0' WHERE IdAndroidCartilla='$idcartilla'
+   ''');
+    return res;
   }
+}
