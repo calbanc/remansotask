@@ -23,17 +23,17 @@ class DBProvider extends ChangeNotifier {
     final path = join(documentsDirectory.path, 'VerfrutContratista.db');
 
     return await openDatabase(
-        path,
-        version: Env.dbversion,
-        onOpen: (db) => {},
-        onCreate: (Database db, int version) async {
-          await db.execute(''' CREATE TABLE CONTADOR_BINS(
+      path,
+      version: Env.dbversion,
+      onOpen: (db) => {},
+      onCreate: (Database db, int version) async {
+        await db.execute(''' CREATE TABLE CONTADOR_BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               CANT REAL                            
               ) ''');
 
-          await db.execute(''' CREATE TABLE BINS(
+        await db.execute(''' CREATE TABLE BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               COD_BINS TEXT,
@@ -43,10 +43,7 @@ class DBProvider extends ChangeNotifier {
               
               ) ''');
 
-
-
-
-          await db.execute('''
+        await db.execute('''
             CREATE TABLE CARTILLAS(
             IdAndroidCartilla TEXT,
             IdEmpresa TEXT,
@@ -66,6 +63,7 @@ class DBProvider extends ChangeNotifier {
             SwCartillaCierre TEXT,
             FECHASYS TEXT,
             COD_ENV TEXT,
+            COD_ENV_CONTENEDOR TEXT,
             CantMaxEnv TEXT,
             NomEspecie TEXT,
             NomVariedad TEXT,
@@ -79,7 +77,7 @@ class DBProvider extends ChangeNotifier {
             )
             ''');
 
-          await db.execute('''
+        await db.execute('''
             CREATE TABLE TRABAJADORESXCONTRATISTA(              
               IdEmpresa TEXT,
               Rut TEXT,
@@ -91,7 +89,7 @@ class DBProvider extends ChangeNotifier {
             )
             ''');
 
-          await db.execute('''
+        await db.execute('''
             CREATE TABLE ENTREGAS(
               IdEntrega integer primary key,
               IdAndroidCartilla TEXT,
@@ -109,7 +107,7 @@ class DBProvider extends ChangeNotifier {
 
           
           ''');
-          await db.execute('''
+        await db.execute('''
             CREATE TABLE CONFIG(
               FechaSincronizacion TEXT,
               TiempoDelay TEXT
@@ -118,30 +116,47 @@ class DBProvider extends ChangeNotifier {
 
           
           ''');
+      },
+      onUpgrade: (Database db, int olversion, int newverion) async {
+        if (olversion < newverion) {
+          final result1 = await db.rawQuery("PRAGMA table_info(CARTILLAS);");
+          final hasMAXENV = result1.any(
+            (column) => column['name'] == 'MAX_ENV',
+          );
 
+          final hasCodEnvContenedor = result1.any(
+            (column) => column['name'] == 'COD_ENV_CONTENEDOR',
+          );
 
-        },
-        onUpgrade: (Database db, int olversion, int newverion) async {
-          if (olversion < newverion) {
+          final hasCantMaxEnv = result1.any(
+            (column) => column['name'] == 'CantMaxEnv',
+          );
 
-            final result1 = await db.rawQuery("PRAGMA table_info(CARTILLAS);");
-            final hasMAXENV = result1.any((column) =>
-            column['name'] == 'MAX_ENV');
-            final hasCantMaxEnv = result1.any((column) =>
-            column['name'] == 'CantMaxEnv');
-            if (!hasMAXENV) {
-              hasCantMaxEnv ? null : await db.execute(
-                  "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
-            } else {
-              await db.execute("ALTER TABLE CARTILLAS DROP COLUMN MAX_ENV");
-              hasCantMaxEnv ? null : await db.execute(
-                  "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT");
-            }
+          if (!hasCodEnvContenedor) {
+            await db.execute(
+              "ALTER TABLE CARTILLAS ADD COLUMN COD_ENV_CONTENEDOR TEXT",
+            );
+          }
 
-            await db.execute(''' DROP TABLE IF EXISTS CUARTELES ''');
-            await db.execute(''' DROP TABLE IF EXISTS MAESTRO_LABORES ''');
-            await db.execute(''' DROP TABLE IF EXISTS ENVASE ''');
-            await db.execute(''' CREATE  TABLE IF NOT EXISTS BINS(
+          if (!hasMAXENV) {
+            hasCantMaxEnv
+                ? null
+                : await db.execute(
+                  "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT",
+                );
+          } else {
+            await db.execute("ALTER TABLE CARTILLAS DROP COLUMN MAX_ENV");
+            hasCantMaxEnv
+                ? null
+                : await db.execute(
+                  "ALTER TABLE CARTILLAS ADD COLUMN CantMaxEnv TEXT",
+                );
+          }
+
+          await db.execute(''' DROP TABLE IF EXISTS CUARTELES ''');
+          await db.execute(''' DROP TABLE IF EXISTS MAESTRO_LABORES ''');
+          await db.execute(''' DROP TABLE IF EXISTS ENVASE ''');
+          await db.execute(''' CREATE  TABLE IF NOT EXISTS BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               COD_BINS TEXT,
@@ -150,23 +165,24 @@ class DBProvider extends ChangeNotifier {
               SW_SINCRONIZADO TEXT
               
               ) ''');
-            await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
+          await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
               IdAndroidCartilla TEXT,
               CANT INTEGER                            
               ) ''');
 
+          if (olversion < 5) {
+            newverion == 5 ? await db.execute(''' DROP TABLE BINS ''') : null;
+            newverion == 5
+                ? await db.execute(''' DROP TABLE CONTADOR_BINS ''')
+                : null;
 
-            if (olversion < 5) {
-              newverion==5 ? await db.execute( ''' DROP TABLE BINS '''):null;
-              newverion==5 ? await db.execute( ''' DROP TABLE CONTADOR_BINS '''):null;
-
-              await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
+            await db.execute(''' CREATE TABLE IF NOT EXISTS CONTADOR_BINS(
                       _id INTEGER PRIMARY KEY AUTOINCREMENT,
                       IdAndroidCartilla TEXT,
                       CANT REAL                            
                       ) ''');
-              await db.execute(''' CREATE TABLE IF NOT EXISTS BINS(
+            await db.execute(''' CREATE TABLE IF NOT EXISTS BINS(
                       _id INTEGER PRIMARY KEY AUTOINCREMENT,
                       IdAndroidCartilla TEXT,
                       COD_BINS TEXT,
@@ -175,11 +191,10 @@ class DBProvider extends ChangeNotifier {
                       SW_SINCRONIZADO TEXT
                       
                       ) ''');
-            }
+          }
 
-            await db.transaction((txn) async {
-
-              await txn.execute('''
+          await db.transaction((txn) async {
+            await txn.execute('''
                   CREATE TABLE ENTREGAS_tmp(
                     IdEntrega INTEGER PRIMARY KEY,
                     IdAndroidCartilla TEXT,
@@ -196,8 +211,8 @@ class DBProvider extends ChangeNotifier {
                   );
                 ''');
 
-              // 2) Copiar datos (con CAST por si acaso)
-              await txn.execute('''
+            // 2) Copiar datos (con CAST por si acaso)
+            await txn.execute('''
                   INSERT INTO ENTREGAS_tmp (
                     IdEntrega, IdAndroidCartilla, Qr, Cantidad, Fecha, Hora,
                     IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
@@ -208,18 +223,14 @@ class DBProvider extends ChangeNotifier {
                   FROM ENTREGAS;
                 ''');
 
-              // 3) Borrar tabla vieja
-              await txn.execute('DROP TABLE ENTREGAS;');
+            // 3) Borrar tabla vieja
+            await txn.execute('DROP TABLE ENTREGAS;');
 
-              // 4) Renombrar la temporal
-              await txn.execute('ALTER TABLE ENTREGAS_tmp RENAME TO ENTREGAS;');
-            });
-
-          }
-
-
-
+            // 4) Renombrar la temporal
+            await txn.execute('ALTER TABLE ENTREGAS_tmp RENAME TO ENTREGAS;');
+          });
         }
+      },
     );
   }
 
@@ -230,7 +241,7 @@ class DBProvider extends ChangeNotifier {
       ''');
     return List.generate(
       res.length,
-          (index) => QrCartillaResponse(
+      (index) => QrCartillaResponse(
         idcartilla: res[index]['IdCartilla'],
         cuartel: res[index]['Cuartel'],
         labor: res[index]['Labor'],
@@ -262,7 +273,7 @@ class DBProvider extends ChangeNotifier {
 
     return List.generate(
       res.length,
-          (index) => Cartillaqr(
+      (index) => Cartillaqr(
         idAndroidCartilla: res[index]["IdAndroidCartilla"],
         idEmpresa: res[index]["IdEmpresa"],
         idFamilia: res[index]["IdFamilia"],

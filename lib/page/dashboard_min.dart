@@ -410,7 +410,20 @@ class DashboardMain extends StatelessWidget {
                       String barcodeScanRes = await VerfrutApp().scanqr(
                         context,
                       );
-                      if (barcodeScanRes != "-1") {
+                      if (barcodeScanRes != "-1" || barcodeScanRes.isNotEmpty) {
+                        if (barcodeScanRes.length > 10) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return VerfrutApp.Dialogalert(
+                                icono: Icons.warning_amber_rounded,
+                                mensajecontent: 'Codigo QR no valido',
+                              );
+                            },
+                          );
+                          return;
+                        }
+
                         String idcartilla =
                             provider.cartillaseleccionada!.idAndroidCartilla!;
                         List<Trabajador>? lista = await provider

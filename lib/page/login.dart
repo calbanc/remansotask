@@ -28,9 +28,6 @@ class Login extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => new TrabajadorxContratistaProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (context) => new Connectivity_provider(),
-        ),
       ],
       child: _Login(),
     );
@@ -323,9 +320,6 @@ class _Login extends StatelessWidget {
                                         },
                                       );
                                     } else {
-                                      bool conectado =
-                                          await Connectivity_provider()
-                                              .isOnlineNet();
                                       await insertaqr(
                                         trabajadorcontratisprovider,
                                         qr,
@@ -564,11 +558,9 @@ class _Login extends StatelessWidget {
                       if (!trabajadorcontratisprovider.isValidateFormalert()) {
                         return;
                       }
-
                       qr.codEnv = trabajadorcontratisprovider.cod_env;
                       qr.maxEnv =
                           trabajadorcontratisprovider.maxenvController.text;
-
                       await trabajadorcontratisprovider.insertarqr(qr);
                       Future.microtask(
                         () => {

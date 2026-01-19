@@ -16,32 +16,30 @@ class CartillaQrResponse {
   String? message;
   List<Cartillaqr>? cartillaqr;
 
-  CartillaQrResponse({
-    this.status,
-    this.code,
-    this.message,
-    this.cartillaqr,
-  });
+  CartillaQrResponse({this.status, this.code, this.message, this.cartillaqr});
 
   factory CartillaQrResponse.fromMap(Map<String, dynamic> json) =>
       CartillaQrResponse(
         status: json["status"],
         code: json["code"],
         message: json["message"],
-        cartillaqr: json["cartillaqr"] == null
-            ? []
-            : List<Cartillaqr>.from(
-                json["cartillaqr"]!.map((x) => Cartillaqr.fromMap(x))),
+        cartillaqr:
+            json["cartillaqr"] == null
+                ? []
+                : List<Cartillaqr>.from(
+                  json["cartillaqr"]!.map((x) => Cartillaqr.fromMap(x)),
+                ),
       );
 
   Map<String, dynamic> toMap() => {
-        "status": status,
-        "code": code,
-        "message": message,
-        "cartillaqr": cartillaqr == null
+    "status": status,
+    "code": code,
+    "message": message,
+    "cartillaqr":
+        cartillaqr == null
             ? []
             : List<dynamic>.from(cartillaqr!.map((x) => x.toMap())),
-      };
+  };
 }
 
 class Cartillaqr {
@@ -63,6 +61,7 @@ class Cartillaqr {
   String? swCartillaCierre;
   String? fechasys;
   String? codEnv;
+  String? codEnvContenedor;
   String? maxEnv;
   String? nomEspecie;
   String? nomVariedad;
@@ -94,6 +93,7 @@ class Cartillaqr {
     this.swCartillaCierre,
     this.fechasys,
     this.codEnv,
+    this.codEnvContenedor,
     this.maxEnv,
     this.nomEspecie,
     this.nomVariedad,
@@ -108,79 +108,81 @@ class Cartillaqr {
   });
 
   factory Cartillaqr.fromMap(Map<String, dynamic> json) => Cartillaqr(
-      idAndroidCartilla: json["IdAndroidCartilla"],
-      idEmpresa: json["IdEmpresa"],
-      idFamilia: json["IdFamilia"],
-      idActividad: json["IdActividad"],
-      idContratista: json["IdContratista"],
-      idZona: json["IdZona"],
-      idEspecie: json["IdEspecie"],
-      idVariedad: json["IdVariedad"],
-      idCuartel: json["IdCuartel"],
-      horainicio: json["HORAINICIO"],
-      horatermino: json["HORATERMINO"],
-      fechainicio: json["FECHAINICIO"],
-      fechatermino: json["FECHATERMINO"],
-      idusuario: json["IDUSUARIO"],
-      swUnoaUno: json["SwUnoaUno"],
-      swCartillaCierre: json["SwCartillaCierre"],
-      fechasys: json["FECHASYS"],
-      codEnv: json["COD_ENV"],
-      nomEspecie: json["NomEspecie"],
-      nomVariedad: json["NomVariedad"],
-      nomZon: json["NomZon"],
-      nomCuartel: json["NomCuartel"],
-      nomContratista: json["NomContratista"],
-      nomFamilia: json["NomFamilia"],
-      nomActividad: json["NomActividad"],
-      nomEnv: json["NOM_ENV"],
-      cantBins: json["CantMaxEnv"]=='null' || json["CantMaxEnv"]==null ? 0: int.parse(json["CantMaxEnv"]),
-      SwSincronizado: json["SwSincronizado"]);
+    idAndroidCartilla: json["IdAndroidCartilla"],
+    idEmpresa: json["IdEmpresa"],
+    idFamilia: json["IdFamilia"],
+    idActividad: json["IdActividad"],
+    idContratista: json["IdContratista"],
+    idZona: json["IdZona"],
+    idEspecie: json["IdEspecie"],
+    idVariedad: json["IdVariedad"],
+    idCuartel: json["IdCuartel"],
+    horainicio: json["HORAINICIO"],
+    horatermino: json["HORATERMINO"],
+    fechainicio: json["FECHAINICIO"],
+    fechatermino: json["FECHATERMINO"],
+    idusuario: json["IDUSUARIO"],
+    swUnoaUno: json["SwUnoaUno"],
+    swCartillaCierre: json["SwCartillaCierre"],
+    fechasys: json["FECHASYS"],
+    codEnv: json["COD_ENV"],
+    nomEspecie: json["NomEspecie"],
+    nomVariedad: json["NomVariedad"],
+    nomZon: json["NomZon"],
+    nomCuartel: json["NomCuartel"],
+    nomContratista: json["NomContratista"],
+    nomFamilia: json["NomFamilia"],
+    nomActividad: json["NomActividad"],
+    nomEnv: json["NOM_ENV"],
+    codEnvContenedor: json["COD_ENV_CONTENEDOR"],
+
+    cantBins:
+        json["CantMaxEnv"] == 'null' || json["CantMaxEnv"] == null
+            ? 0
+            : int.parse(json["CantMaxEnv"]),
+    SwSincronizado: json["SwSincronizado"],
+  );
 
   Map<String, dynamic> toMap() => {
-        "IdAndroidCartilla": idAndroidCartilla,
-        "IdEmpresa": idEmpresa,
-        "IdFamilia": idFamilia,
-        "IdActividad": idActividad,
-        "IdContratista": idContratista,
-        "IdZona": idZona,
-        "IdEspecie": idEspecie,
-        "IdVariedad": idVariedad,
-        "IdCuartel": idCuartel,
-        "HORAINICIO": horainicio,
-        "HORATERMINO": horatermino,
-        "FECHAINICIO": fechainicio,
-        "FECHATERMINO": fechatermino,
-        "IDUSUARIO": idusuario,
-        "SwUnoaUno": swUnoaUno,
-        "SwCartillaCierre": swCartillaCierre,
-        "FECHASYS": fechasys,
-        "COD_ENV": codEnv,
-        "CantMaxEnv":maxEnv,
-        "NomEspecie": nomEspecie,
-        "NomVariedad": nomVariedad,
-        "NomZon": nomZon,
-        "NomCuartel": nomCuartel,
-        "NomContratista": nomContratista,
-        "NomFamilia": nomFamilia,
-        "NomActividad": nomActividad,
-        "SwSincronizado": SwSincronizado
-      };
+    "IdAndroidCartilla": idAndroidCartilla,
+    "IdEmpresa": idEmpresa,
+    "IdFamilia": idFamilia,
+    "IdActividad": idActividad,
+    "IdContratista": idContratista,
+    "IdZona": idZona,
+    "IdEspecie": idEspecie,
+    "IdVariedad": idVariedad,
+    "IdCuartel": idCuartel,
+    "HORAINICIO": horainicio,
+    "HORATERMINO": horatermino,
+    "FECHAINICIO": fechainicio,
+    "FECHATERMINO": fechatermino,
+    "IDUSUARIO": idusuario,
+    "SwUnoaUno": swUnoaUno,
+    "SwCartillaCierre": swCartillaCierre,
+    "FECHASYS": fechasys,
+    "COD_ENV": codEnv,
+    "CantMaxEnv": maxEnv,
+    "NomEspecie": nomEspecie,
+    "NomVariedad": nomVariedad,
+    "NomZon": nomZon,
+    "NomCuartel": nomCuartel,
+    "NomContratista": nomContratista,
+    "NomFamilia": nomFamilia,
+    "COD_ENV_CONTENEDOR": codEnvContenedor,
+    "NomActividad": nomActividad,
+    "SwSincronizado": SwSincronizado,
+  };
 }
 
-
-class Contador_bins{
+class Contador_bins {
   String? idAndroidCartilla;
   int? cant;
-  Contador_bins({
-    this.idAndroidCartilla,
-    this.cant,
-
-  });
+  Contador_bins({this.idAndroidCartilla, this.cant});
   factory Contador_bins.fromMap(Map<String, dynamic> json) => Contador_bins(
-      idAndroidCartilla: json["IdAndroidCartilla"],
-      cant: json["CANT"],
-     );
+    idAndroidCartilla: json["IdAndroidCartilla"],
+    cant: json["CANT"],
+  );
   Map<String, dynamic> toMap() => {
     "IdAndroidCartilla": idAndroidCartilla,
     "CANT": cant,
