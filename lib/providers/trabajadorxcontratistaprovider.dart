@@ -35,6 +35,16 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   GlobalKey<DropdownSearchState> formkeylistacartilla =
       GlobalKey<DropdownSearchState>();
 
+
+  int _tabIndex = 0;
+  int get tabIndex => _tabIndex;
+
+  void setTabIndex(int index) {
+    if (_tabIndex == index) return;
+    _tabIndex = index;
+    notifyListeners();
+  }
+
   static Database? _database;
 
   Future<Database> get database async => _database ??= await initDB();
@@ -417,6 +427,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
         swCartillaCierre: res[index]["SwCartillaCierre"],
         fechasys: res[index]["FECHASYS"],
         codEnv: res[index]["COD_ENV"],
+        codEnvContenedor: res[index]["COD_ENV_CONTENEDOR"],
         nomEspecie: res[index]["NomEspecie"],
         nomVariedad: res[index]["NomVariedad"],
         nomZon: res[index]["NomZon"],
@@ -425,6 +436,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
         nomFamilia: res[index]["NomFamilia"],
         nomEnv: res[index]["NOM_ENV"],
         maxEnv: res[index]["MAX_ENV"],
+
         cantBins: res[index]["CANT_BINS"],
         nomActividad: res[index]["NomActividad"],
       ),

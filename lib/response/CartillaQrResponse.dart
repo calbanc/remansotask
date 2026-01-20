@@ -104,6 +104,7 @@ class Cartillaqr {
     this.nomActividad,
     this.nomEnv,
     this.cantBins,
+
     this.SwSincronizado,
   });
 

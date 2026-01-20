@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
     as googlekit;
 import 'package:image_picker/image_picker.dart';
@@ -99,414 +100,455 @@ class DashboardMain extends StatelessWidget {
       );
     }
 
-    return Scaffold(
-      appBar: VerfrutApp.Verfrutapp(
-        title: 'FrutApp Job',
-        action: IconButton(
-          onPressed: () async {
-            Future.microtask(
-              () => {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => optionsScreen(),
-                    transitionDuration: const Duration(seconds: 1),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: VerfrutApp.Verfrutapp(
+          title: 'FrutApp Job',
+          action: IconButton(
+            onPressed: () async {
+              Future.microtask(
+                () => {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => optionsScreen(),
+                      transitionDuration: const Duration(seconds: 1),
+                    ),
                   ),
-                ),
-              },
-            );
-          },
-          icon: const Icon(Icons.menu, color: Colors.white),
+                },
+              );
+            },
+            icon: const Icon(Icons.menu, color: Colors.white),
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: 50,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12), // <-- Radius
-                      ),
-                    ),
-                    onPressed: () async {
-                      bool conected =
-                          await Connectivity_provider().isOnlineNet();
-
-                      if (!conected) {
-                        provider.speak('Sin conexion no puede sincronizar');
-                        return;
-                      }
-
-                      provider.isLoading = true;
-                      provider.speak('Sincronizacion en curso');
-                      try {
-                        await sincronizaciontrabajadores(provider, context);
-                      } catch (e) {
-                        provider.isLoading = false;
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return VerfrutApp.Dialogalert(
-                              icono: Icons.cancel,
-                              mensajecontent: 'error sincronizando datos $e',
-                            );
-                          },
-                        );
-                      }
-
-                      provider.isLoading = false;
-                      provider.speak('Sincronizacion finalizada');
-                    },
-                    child:
-                        provider.isLoading
-                            ? const CupertinoActivityIndicator(
-                              color: Colors.white,
-                            )
-                            : const Text(
-                              'Sincronizar Datos',
-                              style: TextStyle(
-                                fontFamily: 'MontserratB',
-                                color: Colors.white,
-                                //fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Cuarteles',
-                  style: TextStyle(fontFamily: 'MontserratR', fontSize: 20),
-                ),
-              ),
-
-              //provider.cartillasdisponibles.isEmpty ? const _RedirectToLogin() :  _cartillasCuarteles(provider: provider),
-              _cartillasCuarteles(provider: provider),
-              Container(
-                child: Row(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: 30,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'Cartilla',
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 20,
-                          ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
                       ),
-                    ),
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.6,
-                      child: CheckboxListTile(
-                        title: Text(
-                          'Registro Uno a Uno',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'MontserratR',
-                          ),
-                        ),
-                        value: provider.swunoauno,
-                        onChanged: (bool? value) {
-                          provider.swunoauno = value!;
-                          provider.cambiartipolectura(
-                            provider.cartillaseleccionada!,
-                            value,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                      onPressed: () async {
+                        bool conected =
+                            await Connectivity_provider().isOnlineNet();
 
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: 50,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromRGBO(36, 99, 174, 1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12), // <-- Radius
-                      ),
-                    ),
-                    onPressed: () async {
-                      try {
-                        String str = await _showActionSheet(context) ?? '';
+                        if (!conected) {
+                          provider.speak('Sin conexion no puede sincronizar');
+                          return;
+                        }
 
-                        var entries = str
-                            .substring(1, str.length - 1)
-                            .split(RegExp(r',\s?'))
-                            .map((e) => e.split(RegExp(r':\s?')))
-                            .map((e) => MapEntry(e.first, e.last));
-                        var result = Map.fromEntries(entries);
-                        Cartillaqr qr = Cartillaqr.fromMap(result);
-
-                        final datefechainicio = DateFormat(
-                          'dd/MM/yy',
-                        ).parse(qr.fechainicio!);
-                        final now = DateFormat(
-                          'dd/MM/yy',
-                        ).format(DateTime.now());
-                        final fechainicio = DateFormat(
-                          'dd/MM/yy',
-                        ).format(datefechainicio);
-
-                        if (now.compareTo(fechainicio) == 0) {
-                          List<Cartillaqr> respuesta = await provider
-                              .consultaqr(qr);
-                          if (respuesta.length > 0) {
-                            provider.speak('Cartilla ya registrada');
-
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return VerfrutApp.DialogalertIso(
-                                  mensajecontent:
-                                      'Cartilla ya registrada,desea abrirla?',
-                                  action: SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red,
-                                            ),
-                                            onPressed: () async {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text(
-                                              'No',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 10),
-                                        Expanded(
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Color.fromRGBO(
-                                                36,
-                                                99,
-                                                175,
-                                                1,
-                                              ),
-                                            ),
-                                            onPressed: () async {
-                                              await provider.abrircartilla(
-                                                qr.idAndroidCartilla!,
-                                              );
-
-                                              await provider
-                                                  .getcartillasdisponibles();
-                                              provider.cartillaseleccionada =
-                                                  qr;
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text(
-                                              'Si',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          } else {
-                            int respuesta = await provider.insertarqr(qr);
-                            provider.speak('Cartilla registrada correctamente');
-                          }
-                        } else {
-                          provider.speak('Fecha de termino concluida');
+                        provider.isLoading = true;
+                        provider.speak('Sincronizacion en curso');
+                        try {
+                          await sincronizaciontrabajadores(provider, context);
+                        } catch (e) {
+                          provider.isLoading = false;
                           showDialog(
                             context: context,
                             builder: (context) {
                               return VerfrutApp.Dialogalert(
                                 icono: Icons.cancel,
-                                mensajecontent: 'Fecha de termino concluida',
+                                mensajecontent: 'error sincronizando datos $e',
                               );
                             },
                           );
                         }
-                      } catch (e) {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (BuildContext context) => CupertinoAlertDialog(
-                                title: Text("Qr Invalido"),
-                                content: Text(
-                                  "Estimado usuario QR escaneado no es valido, fecha de termino ya concluida $e",
+
+                        provider.isLoading = false;
+                        provider.speak('Sincronizacion finalizada');
+                      },
+                      child:
+                          provider.isLoading
+                              ? const CupertinoActivityIndicator(
+                                color: Colors.white,
+                              )
+                              : const Text(
+                                'Sincronizar Datos',
+                                style: TextStyle(
+                                  fontFamily: 'MontserratB',
+                                  color: Colors.white,
+                                  //fontWeight: FontWeight.bold,
+                                  fontSize: 20,
                                 ),
                               ),
-                        );
-                      }
-                    },
-                    child: const Text(
-                      'Agregar Cartilla',
-                      style: TextStyle(
-                        fontFamily: 'MontserratB',
-                        color: Colors.white,
-                        fontSize: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Cuarteles',
+                    style: TextStyle(fontFamily: 'MontserratR', fontSize: 20),
+                  ),
+                ),
+
+                //provider.cartillasdisponibles.isEmpty ? const _RedirectToLogin() :  _cartillasCuarteles(provider: provider),
+                _cartillasCuarteles(provider: provider),
+                Container(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        height: 30,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'Cartilla',
+                            style: TextStyle(
+                              fontFamily: 'MontserratR',
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.6,
+                        child: CheckboxListTile(
+                          title: Text(
+                            'Registro Uno a Uno',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'MontserratR',
+                            ),
+                          ),
+                          value: provider.swunoauno,
+                          onChanged: (bool? value) {
+                            provider.swunoauno = value!;
+                            provider.cambiartipolectura(
+                              provider.cartillaseleccionada!,
+                              value,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(36, 99, 174, 1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // <-- Radius
+                        ),
+                      ),
+                      onPressed: () async {
+                        try {
+                          String str = await _showActionSheet(context) ?? '';
+
+                          var entries = str
+                              .substring(1, str.length - 1)
+                              .split(RegExp(r',\s?'))
+                              .map((e) => e.split(RegExp(r':\s?')))
+                              .map((e) => MapEntry(e.first, e.last));
+                          var result = Map.fromEntries(entries);
+                          Cartillaqr qr = Cartillaqr.fromMap(result);
+
+                          final datefechainicio = DateFormat(
+                            'dd/MM/yy',
+                          ).parse(qr.fechainicio!);
+                          final now = DateFormat(
+                            'dd/MM/yy',
+                          ).format(DateTime.now());
+                          final fechainicio = DateFormat(
+                            'dd/MM/yy',
+                          ).format(datefechainicio);
+
+                          if (now.compareTo(fechainicio) == 0) {
+                            List<Cartillaqr> respuesta = await provider
+                                .consultaqr(qr);
+                            if (respuesta.length > 0) {
+                              provider.speak('Cartilla ya registrada');
+
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return VerfrutApp.DialogalertIso(
+                                    mensajecontent:
+                                        'Cartilla ya registrada,desea abrirla?',
+                                    action: SizedBox(
+                                      width:
+                                          MediaQuery.of(context).size.width * 0.5,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                              ),
+                                              onPressed: () async {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text(
+                                                'No',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Expanded(
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Color.fromRGBO(
+                                                  36,
+                                                  99,
+                                                  175,
+                                                  1,
+                                                ),
+                                              ),
+                                              onPressed: () async {
+                                                await provider.abrircartilla(
+                                                  qr.idAndroidCartilla!,
+                                                );
+
+                                                await provider
+                                                    .getcartillasdisponibles();
+                                                provider.cartillaseleccionada =
+                                                    qr;
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text(
+                                                'Si',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            } else {
+                              int respuesta = await provider.insertarqr(qr);
+                              provider.speak('Cartilla registrada correctamente');
+                            }
+                          } else {
+                            provider.speak('Fecha de termino concluida');
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return VerfrutApp.Dialogalert(
+                                  icono: Icons.cancel,
+                                  mensajecontent: 'Fecha de termino concluida',
+                                );
+                              },
+                            );
+                          }
+                        } catch (e) {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (BuildContext context) => CupertinoAlertDialog(
+                                  title: Text("Qr Invalido"),
+                                  content: Text(
+                                    "Estimado usuario QR escaneado no es valido, fecha de termino ya concluida $e",
+                                  ),
+                                ),
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'Agregar Cartilla',
+                        style: TextStyle(
+                          fontFamily: 'MontserratB',
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: 50,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12), // <-- Radius
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // <-- Radius
+                        ),
                       ),
-                    ),
-                    onPressed: () async {
-                      if (provider.cartillaseleccionada!.idAndroidCartilla ==
-                          '') {
-                        provider.speak('Debe seleccionar cartilla');
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return VerfrutApp.Dialogalert(
-                              icono: Icons.cancel,
-                              mensajecontent: 'Debe seleccionar cartilla',
-                            );
-                          },
-                        );
-                      }
-
-                      String barcodeScanRes = await VerfrutApp().scanqr(
-                        context,
-                      );
-                      if (barcodeScanRes != "-1" || barcodeScanRes.isNotEmpty) {
-                        if (barcodeScanRes.length > 10) {
+                      onPressed: () async {
+                        if (provider.cartillaseleccionada!.idAndroidCartilla ==
+                            '') {
+                          provider.speak('Debe seleccionar cartilla');
                           showDialog(
                             context: context,
                             builder: (context) {
                               return VerfrutApp.Dialogalert(
-                                icono: Icons.warning_amber_rounded,
-                                mensajecontent: 'Codigo QR no valido',
+                                icono: Icons.cancel,
+                                mensajecontent: 'Debe seleccionar cartilla',
                               );
                             },
                           );
-                          return;
                         }
 
-                        String idcartilla =
-                            provider.cartillaseleccionada!.idAndroidCartilla!;
-                        List<Trabajador>? lista = await provider
-                            .gettrabajadorbyqr(barcodeScanRes, idcartilla);
+                        String barcodeScanRes = await VerfrutApp().scanqr(
+                          context,
+                        );
+                        if (barcodeScanRes != "-1" || barcodeScanRes.isNotEmpty) {
+                          if (barcodeScanRes.length > 10) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return VerfrutApp.Dialogalert(
+                                  icono: Icons.warning_amber_rounded,
+                                  mensajecontent: 'Codigo QR no valido',
+                                );
+                              },
+                            );
+                            return;
+                          }
 
-                        if (lista!.isEmpty) {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => AddTrabajador(
-                                    qr: barcodeScanRes,
-                                    idcartilla: provider.cartillaseleccionada!,
-                                  ),
-                            ),
-                          );
-                          await provider.listadoentregas(
-                            provider.cartillaseleccionada!.idAndroidCartilla!,
-                          );
-                        } else {
-                          insertarentrega(
-                            provider,
-                            barcodeScanRes,
-                            lista!,
-                            context,
-                          );
+                          String idcartilla =
+                              provider.cartillaseleccionada!.idAndroidCartilla!;
+                          List<Trabajador>? lista = await provider
+                              .gettrabajadorbyqr(barcodeScanRes, idcartilla);
+
+                          if (lista!.isEmpty) {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => AddTrabajador(
+                                      qr: barcodeScanRes,
+                                      idcartilla: provider.cartillaseleccionada!,
+                                    ),
+                              ),
+                            );
+                            await provider.listadoentregas(
+                              provider.cartillaseleccionada!.idAndroidCartilla!,
+                            );
+                          } else {
+                            insertarentrega(
+                              provider,
+                              barcodeScanRes,
+                              lista!,
+                              context,
+                            );
+                          }
                         }
-                      }
-                    },
-                    child: const Text(
-                      'Escanear Codigo QR',
-                      style: TextStyle(
-                        fontFamily: 'MontserratB',
-                        color: Colors.white,
-                        fontSize: 20,
+                      },
+                      child: const Text(
+                        'Escanear Codigo QR',
+                        style: TextStyle(
+                          fontFamily: 'MontserratB',
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      'Trabajadores: ${provider.listaentregas.length}  ',
-                      style: TextStyle(fontFamily: 'MontserratR', fontSize: 12),
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TabBar(
+                      onTap: (i) {
+                        // si el tab 3 no está habilitado, no permitimos ir
 
-                    Row(
-                      children: [
-                        SvgPicture.asset('assets/bins.svg'),
-                        SizedBox(width: 5),
-                        Text(
-                          'Envase: ${provider.contador}',
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 12,
+                        if(provider.cartillaseleccionada!.codEnvContenedor==null){
+                          Fluttertoast.showToast(msg: 'No se puede acceder a esta pestaña');
+                          provider.setTabIndex(0);
+                          return;
+                        }else{
+                          provider.setTabIndex(i);
+
+                        }
+                      },
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicatorColor: const Color.fromRGBO(36, 99, 174, 1),
+                      indicatorWeight: 3,
+                      labelColor: const Color.fromRGBO(36, 99, 174, 1),
+                      unselectedLabelColor: Colors.black87,
+                      dividerColor: Colors.transparent,
+                      tabs: [
+                        Tab(
+                          child: Text(
+                            'Trabajadores: ${provider.listaentregas.length}',
+                            style: const TextStyle(
+                              fontFamily: 'MontserratR',
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Tab(
+                          child: Text(
+                            'Entregas: ${provider.totalcantidadentregas.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontFamily: 'MontserratR',
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/bins.svg',
+                                height: 14,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Unid Cont: ${provider.contador}',
+                                style: const TextStyle(
+                                  fontFamily: 'MontserratR',
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-
-                    Text(
-                      'Entregas: ${provider.totalcantidadentregas.toStringAsFixed(2)}  ',
-                      style: TextStyle(fontFamily: 'MontserratR', fontSize: 12),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              provider.listaentregas.isNotEmpty
-                  ? SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    child: _listadoentregas(provider: provider),
-                  )
-                  : Container(),
-            ],
+
+                provider.listaentregas.isNotEmpty
+                    ? SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: _listadoentregas(provider: provider),
+                    )
+                    : Container(),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: SafeArea(child: _bottombar(provider: provider)),
       ),
-      bottomNavigationBar: SafeArea(child: _bottombar(provider: provider)),
     );
   }
 }
@@ -636,7 +678,11 @@ class _bottombar extends StatelessWidget {
               },
             );
           },
-          child: const Text(
+          child: provider.tabIndex==2? Text('Cerrar Unidad Contenedora',style: TextStyle(
+            fontFamily: 'MontserratB',
+            color: Colors.white,
+            fontSize: 20,
+          ))  : Text(
             'Cerrar Cartilla',
             style: TextStyle(
               fontFamily: 'MontserratB',
@@ -646,6 +692,8 @@ class _bottombar extends StatelessWidget {
           ),
         ),
       ),
+
+
     );
   }
 }

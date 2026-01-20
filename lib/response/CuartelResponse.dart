@@ -41,6 +41,8 @@ class Cuarteles {
   String? idVariedad;
   String? nomVariedad;
 
+
+
   Cuarteles({
     this.idEmpresa,
     this.idCuartel,
