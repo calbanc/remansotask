@@ -100,7 +100,6 @@ class EditWorkerProvider extends ChangeNotifier {
   void cargardatosiniciales(ListadoEntregaResponse response){
     String dv=response.digito??'';
     if(dv.isNotEmpty){
-      validarut=true;
       String rut=response.rut!;
        if(response.rut!.contains('-',1)) rut=response.rut!.substring(0, response.rut!.indexOf('-'));
       controllerrut.text='${rut}-${response.digito}';

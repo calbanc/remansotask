@@ -10,6 +10,7 @@ class ListadoEntregaResponse {
   String? qr;
   String? rut;
   String? digito;
+  String? swsincronizado;
   ListadoEntregaResponse(
       {this.cuartel,
       this.labor,
@@ -19,7 +20,8 @@ class ListadoEntregaResponse {
       this.identrega,
       this.qr,
       this.rut,
-      this.digito});
+      this.digito,
+      this.swsincronizado});
 
   factory ListadoEntregaResponse.fromJson(Map<String, dynamic> json) =>
       ListadoEntregaResponse(
@@ -31,7 +33,8 @@ class ListadoEntregaResponse {
           identrega: json["IdEntrega"],
           qr: json["Qr"],
           rut: json["Rut"],
-          digito: json["Digito"]);
+          digito: json["Digito"],
+          swsincronizado: json["SwSincronizado"]?.toString());
 
   Map<String, dynamic> toJson() => {
         "NomCuartel": cuartel,
@@ -42,6 +45,7 @@ class ListadoEntregaResponse {
         "IdAndroidCartilla": identrega,
         "Qr": qr,
         "Rut": rut,
-        "Digito": digito
+        "Digito": digito,
+        "SwSincronizado": swsincronizado
       };
 }

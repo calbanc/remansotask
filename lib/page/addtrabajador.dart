@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:verfwork/page/maindashboard.dart';
-import 'package:verfwork/page/page.dart';
 import 'package:verfwork/providers/provider.dart';
 import 'package:verfwork/util/VerfrutApp.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +11,6 @@ import 'package:provider/provider.dart';
 
 import '../response/CartillaQrResponse.dart';
 import '../response/response.dart';
-import 'mrz/scannrut.dart';
 
 class AddTrabajador extends StatelessWidget {
   final qr;
@@ -44,29 +41,24 @@ class _addTrabajador extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AddTrabajadorContratistaProvider>(context);
-    provider.controlladorqr = TextEditingController(text: qr);
+    if (provider.controlladorqr.text != qr) {
+      provider.controlladorqr.text = qr;
+    }
     final _picker = ImagePicker();
     bool _validarut(String? input) {
       if (input == null) return false;
 
-      if (!provider.validarut) {
-        final texto = input.trim();
-        final soloNumeros = RegExp(r'^\d+$');
-        bool re = soloNumeros.hasMatch(texto);
-
-        return re;
-      }
       final raw = input.toUpperCase().replaceAll(RegExp(r'[^0-9K]'), '');
-      if (raw.length < 2) return false;
+      if (raw.length != 9) return false;
 
-      // 2) Separa cuerpo y DV
-      final body = raw.substring(0, raw.length - 1);
-      final dv = raw.substring(raw.length - 1);
+      final body = raw.substring(0, 8);
+      final dv = raw.substring(8);
 
-      // Cuerpo solo dígitos
-      if (!RegExp(r'^\d+$').hasMatch(body)) return false;
+      if (!RegExp(r'^\d{8}$').hasMatch(body)) return false;
+      if (!RegExp(r'^[0-9K]$').hasMatch(dv)) return false;
 
-      // 3) Calcula DV esperado (módulo 11, factores 2..7)
+      if (!provider.validarut) return true;
+
       int sum = 0;
       int factor = 2;
       for (int i = body.length - 1; i >= 0; i--) {
@@ -93,23 +85,13 @@ class _addTrabajador extends StatelessWidget {
             child: Column(
               children: [
                 FutureBuilder(
-                  future: provider.getlasttrabajadorbyqr(qr),
+                  future: provider.loadLastWorkerByQr(qr),
                   builder: (
-                      BuildContext context,
-                      AsyncSnapshot<List<Trabajador>> snapshot,
-                      ) {
-                    if (snapshot.data == null || !snapshot.hasData) {
+                    BuildContext context,
+                    AsyncSnapshot<void> snapshot,
+                  ) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CupertinoActivityIndicator();
-                    }
-                    if (snapshot.data!.isNotEmpty) {
-                      List<Trabajador> data = snapshot.data!;
-
-                      provider.controlladornombre = TextEditingController(
-                        text: data[0].nombre,
-                      );
-                      provider.controlladorrut = TextEditingController(
-                        text: data[0].rut,
-                      );
                     }
 
                     return Container();
@@ -190,39 +172,39 @@ class _addTrabajador extends StatelessWidget {
                 provider.path == ''
                     ? Container()
                     : Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 16,
-                  ),
-                  child: GestureDetector(
-                    onTap: () async {
-                      final image = await _picker.pickImage(
-                        source: ImageSource.camera,
-                      );
-                      if (image != null) {
-                        provider.path = image.path;
-                        await provider.procesardatos(image.path);
-                      }
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: 220,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(9),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 16,
                       ),
-                      child: Image.file(File(provider.path)),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final image = await _picker.pickImage(
+                            source: ImageSource.camera,
+                          );
+                          if (image != null) {
+                            provider.path = image.path;
+                            await provider.procesardatos(image.path);
+                          }
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 220,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Image.file(File(provider.path)),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 30,
                     vertical: 16,
                   ),
-                  child: TextFormField(
+                  child: _RutOtpField(
                     style: TextStyle(fontFamily: 'MontserratR'),
                     controller: provider.controlladorrut,
                     validator: (value) {
@@ -232,17 +214,7 @@ class _addTrabajador extends StatelessWidget {
                           ? null
                           : 'Debe ingresar un rut valido';
                     },
-                    inputFormatters: [
-                      // Permite números, puntos, guion y k/K
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-kK]')),
-                    ],
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-
-                      labelText: 'Rut/DNI Trabajador',
-                    ),
+                    labelText: 'Rut/DNI Trabajador',
                   ),
                 ),
                 Padding(
@@ -253,10 +225,13 @@ class _addTrabajador extends StatelessWidget {
                   child: TextFormField(
                     style: TextStyle(fontFamily: 'MontserratR'),
                     controller: provider.controlladornombre,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(50),
+                    ],
                     validator: (value) {
                       return (value == null ||
-                          value.isEmpty ||
-                          value.length > 50)
+                              value.isEmpty ||
+                              value.length > 50)
                           ? 'Debe ingresar un nombre valido'
                           : null;
                     },
@@ -275,31 +250,31 @@ class _addTrabajador extends StatelessWidget {
                     horizontal: 16,
                   ),
                   child:
-                  idcartilla.swUnoaUno == "0"
-                      ? TextFormField(
-                    maxLines: 1,
-                    controller: provider.controlladorcantidad,
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onChanged:
-                        (value) => {
-                      provider.cantidad = double.parse(value),
-                    },
-                    validator: (value) {
-                      return (value == null || value.isEmpty)
-                          ? 'Debe ingresar una cantidad valido'
-                          : null;
-                    },
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      labelText: 'Ingrese cantidad de entregas',
-                      prefix: const Icon(Icons.add_card),
-                    ),
-                  )
-                      : Container(),
+                      idcartilla.swUnoaUno == "0"
+                          ? TextFormField(
+                            maxLines: 1,
+                            controller: provider.controlladorcantidad,
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            onChanged: (value) {
+                              provider.cantidad = double.tryParse(value) ?? 0;
+                            },
+                            validator: (value) {
+                              final cantidad = double.tryParse(value ?? '');
+                              return cantidad == null || cantidad <= 0
+                                  ? 'Debe ingresar una cantidad valida'
+                                  : null;
+                            },
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              labelText: 'Ingrese cantidad de entregas',
+                              prefix: const Icon(Icons.add_card),
+                            ),
+                          )
+                          : Container(),
                 ),
               ],
             ),
@@ -321,74 +296,93 @@ class _addTrabajador extends StatelessWidget {
                 ),
               ),
               onPressed:
-              provider.isLoading
-                  ? null
-                  : () async {
-                FocusScope.of(context).unfocus();
-                if (!provider.isValidateForm()) return;
-                provider.isLoading = true;
+                  provider.isLoading
+                      ? null
+                      : () async {
+                        FocusScope.of(context).unfocus();
+                        if (!provider.isValidateForm()) return;
+                        provider.isLoading = true;
 
-                if (provider.controlladorrut.text.contains("-")) {
-                  var rut = provider.controlladorrut.text.split("-");
-                  provider.controlladorrut.text = rut[0];
-                  provider.controlladordigito.text = rut[1];
-                }
-                List<Trabajador>? trabajador = await provider
-                    .gettrabajadorbyrut(provider.controlladorrut.text);
-                String idempresa;
-                if (trabajador != null) {
-                  provider.controlladoridempresa.text =
-                  trabajador![0].idempresa!;
-                  provider.controlladorcodigotrabajador.text =
-                  trabajador![0].idtrabxcontratista!;
-                  provider.controlladordigito.text =
-                  trabajador![0].digito!;
-                }
+                        var shouldClose = false;
+                        try {
+                          final rutOtp = provider.controlladorrut.text
+                              .toUpperCase()
+                              .replaceAll(RegExp(r'[^0-9K]'), '');
+                          final rut = rutOtp.substring(0, 8);
+                          final digito = rutOtp.substring(8);
+                          provider.controlladordigito.text = digito;
 
-                final today = DateTime.now();
-                final date = DateFormat('dd/MM/yyyy').format(today);
-                double cantidad = 1;
-                if (idcartilla.swUnoaUno == '0') {
-                  cantidad = double.parse(
-                    provider.controlladorcantidad.text,
-                  );
-                }
+                          List<Trabajador>? trabajador = await provider
+                              .gettrabajadorbyrut(rut);
+                          if (trabajador != null) {
+                            provider.controlladoridempresa.text =
+                                trabajador[0].idempresa!;
+                            provider.controlladorcodigotrabajador.text =
+                                trabajador[0].idtrabxcontratista!;
+                          }
 
-                Entrega entrega = Entrega(
-                  idcartilla: idcartilla.idAndroidCartilla,
-                  qr: qr,
-                  cantidad: cantidad,
-                  fecha: date,
-                  hora: today.toString(),
-                  nombre: provider.controlladornombre.text,
-                  rut: provider.controlladorrut.text,
-                  digito: provider.controlladordigito.text,
-                  idempresa: provider.controlladoridempresa.text,
-                  IdTrabXContratista:
-                  provider.controlladorcodigotrabajador.text,
-                  swsincronizado: '0',
-                );
+                          final today = DateTime.now();
+                          final date = DateFormat('dd/MM/yyyy').format(today);
+                          double cantidad = 1;
+                          if (idcartilla.swUnoaUno == '0') {
+                            cantidad = double.parse(
+                              provider.controlladorcantidad.text,
+                            );
+                          }
 
-                await provider.insertentry(entrega);
+                          Entrega entrega = Entrega(
+                            idcartilla: idcartilla.idAndroidCartilla,
+                            qr: qr,
+                            cantidad: cantidad,
+                            fecha: date,
+                            hora: today.toString(),
+                            nombre: provider.controlladornombre.text,
+                            rut: rut,
+                            digito: digito,
+                            idempresa: provider.controlladoridempresa.text,
+                            IdTrabXContratista:
+                                provider.controlladorcodigotrabajador.text,
+                            swsincronizado: '0',
+                          );
 
-                await TrabajadorxContratistaProvider()
-                    .getcartillasdisponibles();
-                List<QrCartillaResponse>? fechainiciocartilla =
-                await provider.getfechainiciobyidcartilla(
-                  idcartilla.idAndroidCartilla!,
-                );
-                fechainiciocartilla == null ||
-                    fechainiciocartilla.length == 0
-                    ? provider.updatehorainicio(
-                  idcartilla.idAndroidCartilla!,
-                )
-                    : null;
+                          await provider.insertentry(entrega);
 
-                TrabajadorxContratistaProvider().speak(
-                  'Entrega Registrada',
-                );
-                Navigator.of(context).pop();
-                /*   Future.microtask(
+                          await TrabajadorxContratistaProvider()
+                              .getcartillasdisponibles();
+                          List<QrCartillaResponse> fechainiciocartilla =
+                              await provider.getfechainiciobyidcartilla(
+                                idcartilla.idAndroidCartilla!,
+                              );
+                          fechainiciocartilla.isEmpty
+                              ? provider.updatehorainicio(
+                                idcartilla.idAndroidCartilla!,
+                              )
+                              : null;
+
+                          TrabajadorxContratistaProvider().speak(
+                            'Entrega Registrada',
+                          );
+                          shouldClose = true;
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'No se pudo registrar el trabajador: $e',
+                                ),
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (context.mounted) {
+                            provider.isLoading = false;
+                          }
+                        }
+
+                        if (shouldClose && context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                        /*   Future.microtask(
                             () => {
                               Navigator.pushReplacement(
                                 context,
@@ -399,8 +393,8 @@ class _addTrabajador extends StatelessWidget {
                               ),
                             },
                           ); */
-                //}
-              },
+                        //}
+                      },
               child: const Text(
                 'Agregar Trabajador',
                 style: TextStyle(
@@ -414,5 +408,330 @@ class _addTrabajador extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _RutOtpField extends StatefulWidget {
+  final TextEditingController controller;
+  final String? Function(String?) validator;
+  final TextStyle? style;
+  final String labelText;
+
+  const _RutOtpField({
+    required this.controller,
+    required this.validator,
+    required this.labelText,
+    this.style,
+  });
+
+  @override
+  State<_RutOtpField> createState() => _RutOtpFieldState();
+}
+
+class _RutOtpFieldState extends State<_RutOtpField> {
+  static final RegExp _digitRegExp = RegExp(r'^\d$');
+  static final RegExp _dvRegExp = RegExp(r'^[0-9K]$');
+
+  final GlobalKey<FormFieldState<String>> _fieldKey =
+      GlobalKey<FormFieldState<String>>();
+  final List<TextEditingController> _digitControllers = List.generate(
+    8,
+    (_) => TextEditingController(),
+  );
+  final TextEditingController _dvController = TextEditingController();
+  final List<FocusNode> _focusNodes = List.generate(9, (_) => FocusNode());
+
+  bool _updatingRutController = false;
+  bool _syncingFromRutController = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_handleRutControllerChanged);
+    _syncFromRutController();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RutOtpField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_handleRutControllerChanged);
+      widget.controller.addListener(_handleRutControllerChanged);
+      _syncFromRutController();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_handleRutControllerChanged);
+    for (final controller in _digitControllers) {
+      controller.dispose();
+    }
+    _dvController.dispose();
+    for (final focusNode in _focusNodes) {
+      focusNode.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<String>(
+      key: _fieldKey,
+      initialValue: _rutValue,
+      validator: (value) {
+        if (!_isComplete) return 'Debe completar todos los campos del rut';
+        return widget.validator(value);
+      },
+      builder: (field) {
+        final borderColor = field.hasError ? Colors.red : Colors.grey;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.labelText,
+              style:
+                  widget.style?.copyWith(fontSize: 12) ??
+                  const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const gap = 3.0;
+                const dashWidth = 10.0;
+                final boxWidth =
+                    ((constraints.maxWidth - dashWidth - (gap * 9)) / 9).clamp(
+                      20.0,
+                      42.0,
+                    );
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (int i = 0; i < _digitControllers.length; i++) ...[
+                      _buildOtpBox(
+                        controller: _digitControllers[i],
+                        focusNode: _focusNodes[i],
+                        width: boxWidth,
+                        borderColor: borderColor,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(1),
+                        ],
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onChanged:
+                            (value) =>
+                                _handleDigitChanged(i, value, field.didChange),
+                      ),
+                      const SizedBox(width: gap),
+                    ],
+                    SizedBox(
+                      width: dashWidth,
+                      child: Text(
+                        '-',
+                        textAlign: TextAlign.center,
+                        style:
+                            widget.style?.copyWith(fontSize: 18) ??
+                            const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                    const SizedBox(width: gap),
+                    _buildOtpBox(
+                      controller: _dvController,
+                      focusNode: _focusNodes.last,
+                      width: boxWidth,
+                      borderColor: borderColor,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9kK]')),
+                        LengthLimitingTextInputFormatter(1),
+                      ],
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.done,
+                      onChanged:
+                          (value) => _handleDvChanged(value, field.didChange),
+                    ),
+                  ],
+                );
+              },
+            ),
+            if (field.hasError) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Text(
+                  field.errorText!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildOtpBox({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required double width,
+    required Color borderColor,
+    required List<TextInputFormatter> inputFormatters,
+    required TextInputType keyboardType,
+    required TextInputAction textInputAction,
+    required ValueChanged<String> onChanged,
+  }) {
+    return SizedBox(
+      width: width,
+      height: 52,
+      child: TextFormField(
+        controller: controller,
+        focusNode: focusNode,
+        textAlign: TextAlign.center,
+        style: widget.style?.copyWith(fontSize: 16),
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        inputFormatters: inputFormatters,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.zero,
+          counterText: '',
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: const BorderSide(color: Color.fromRGBO(36, 99, 174, 1)),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: BorderSide(color: borderColor),
+          ),
+        ),
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  void _handleRutControllerChanged() {
+    if (_updatingRutController) return;
+    _syncFromRutController();
+  }
+
+  void _handleDigitChanged(
+    int index,
+    String value,
+    ValueChanged<String?> didChange,
+  ) {
+    if (_syncingFromRutController) return;
+
+    final digit = value.isEmpty ? '' : value[value.length - 1];
+    if (digit.isNotEmpty && !_digitRegExp.hasMatch(digit)) {
+      _setText(_digitControllers[index], '');
+      return;
+    }
+
+    if (_digitControllers[index].text != digit) {
+      _setText(_digitControllers[index], digit);
+    }
+
+    _writeRutController(didChange);
+    if (digit.isNotEmpty && index < _focusNodes.length - 1) {
+      _focusNodes[index + 1].requestFocus();
+    } else if (digit.isEmpty && index > 0) {
+      _focusNodes[index - 1].requestFocus();
+    }
+  }
+
+  void _handleDvChanged(String value, ValueChanged<String?> didChange) {
+    if (_syncingFromRutController) return;
+
+    final dv = value.isEmpty ? '' : value[value.length - 1].toUpperCase();
+    if (dv.isNotEmpty && !_dvRegExp.hasMatch(dv)) {
+      _setText(_dvController, '');
+      return;
+    }
+
+    if (_dvController.text != dv) {
+      _setText(_dvController, dv);
+    }
+
+    _writeRutController(didChange);
+    if (dv.isEmpty) {
+      _focusNodes[_focusNodes.length - 2].requestFocus();
+    }
+  }
+
+  void _syncFromRutController() {
+    final text = widget.controller.text.toUpperCase().trim();
+    final raw = text.replaceAll(RegExp(r'[^0-9K]'), '');
+    final digits =
+        RegExp(
+          r'\d',
+        ).allMatches(raw).map((match) => match.group(0)!).take(8).toList();
+
+    String dv = '';
+    final dashIndex = text.lastIndexOf('-');
+    if (dashIndex != -1) {
+      final dashDv = text
+          .substring(dashIndex + 1)
+          .replaceAll(RegExp(r'[^0-9K]'), '');
+      if (dashDv.isNotEmpty) dv = dashDv[0];
+    } else if (raw.length > 8) {
+      dv = raw[8];
+    }
+
+    _syncingFromRutController = true;
+    for (int i = 0; i < _digitControllers.length; i++) {
+      _setText(_digitControllers[i], i < digits.length ? digits[i] : '');
+    }
+    _setText(_dvController, _dvRegExp.hasMatch(dv) ? dv : '');
+    _syncingFromRutController = false;
+
+    _fieldKey.currentState?.didChange(_rutValue);
+  }
+
+  void _writeRutController(ValueChanged<String?> didChange) {
+    final value = _rutValue;
+
+    _updatingRutController = true;
+    if (widget.controller.text != value) {
+      widget.controller.value = TextEditingValue(
+        text: value,
+        selection: TextSelection.collapsed(offset: value.length),
+      );
+    }
+    _updatingRutController = false;
+
+    didChange(value);
+  }
+
+  void _setText(TextEditingController controller, String value) {
+    if (controller.text == value) return;
+    controller.value = TextEditingValue(
+      text: value,
+      selection: TextSelection.collapsed(offset: value.length),
+    );
+  }
+
+  bool get _isComplete {
+    return _digitControllers.every(
+          (controller) => controller.text.isNotEmpty,
+        ) &&
+        _dvController.text.isNotEmpty;
+  }
+
+  String get _rutValue {
+    final rut = _digitControllers.map((controller) => controller.text).join();
+    final dv = _dvController.text.toUpperCase();
+    return dv.isEmpty ? rut : '$rut-$dv';
   }
 }

@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Contratistas',
+      title: 'FrutApp Job',
       initialRoute: 'login',
       routes: {'login': (_) => Login()},
       theme: ThemeData(primaryColor: Colors.green[900]),

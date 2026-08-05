@@ -142,6 +142,8 @@ class DashboardMain extends StatelessWidget {
                         ),
                       ),
                       onPressed: () async {
+                        if (provider.isLoading) return;
+
                         bool conected =
                             await Connectivity_provider().isOnlineNet();
 
@@ -150,25 +152,92 @@ class DashboardMain extends StatelessWidget {
                           return;
                         }
 
+                        if (!context.mounted) {
+                          return;
+                        }
+
                         provider.isLoading = true;
+                        provider.startSyncProgress();
                         provider.speak('Sincronizacion en curso');
+
+                        List<String> syncMessages = [];
+                        Object? syncError;
+                        bool syncDialogVisible = false;
                         try {
-                          await sincronizaciontrabajadores(provider, context);
+                          _showSyncProgressDialog(context, provider);
+                          syncDialogVisible = true;
+                          await Future<void>.delayed(
+                            const Duration(milliseconds: 100),
+                          );
+
+                          syncMessages = await sincronizaciontrabajadores(
+                            provider,
+                          );
+                          provider.updateSyncProgress(
+                            1,
+                            'Sincronizacion finalizada',
+                          );
+                          await Future.delayed(
+                            const Duration(milliseconds: 300),
+                          );
                         } catch (e) {
+                          syncError = e;
+                        } finally {
+                          if (syncDialogVisible && context.mounted) {
+                            Navigator.of(context, rootNavigator: true).pop();
+                          }
+                          provider.finishSyncProgress();
                           provider.isLoading = false;
+                        }
+
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        if (syncError != null) {
                           showDialog(
                             context: context,
                             builder: (context) {
                               return VerfrutApp.Dialogalert(
                                 icono: Icons.cancel,
-                                mensajecontent: 'error sincronizando datos $e',
+                                mensajecontent:
+                                    'error sincronizando datos $syncError',
+                              );
+                            },
+                          );
+                          return;
+                        }
+
+                        final selectedCartilla = provider.cartillaseleccionada;
+                        final selectedCartillaId =
+                            selectedCartilla?.idAndroidCartilla;
+                        if (selectedCartillaId != null &&
+                            selectedCartillaId.isNotEmpty) {
+                          await provider.listadoentregas(selectedCartillaId);
+                        }
+
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        if (syncMessages.isNotEmpty) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return VerfrutApp.Dialogalert(
+                                icono: Icons.cancel,
+                                mensajecontent: syncMessages.join('\n'),
                               );
                             },
                           );
                         }
 
-                        provider.isLoading = false;
-                        provider.speak('Sincronizacion finalizada');
+                        Fluttertoast.showToast(
+                          msg: 'Sincronizacion culminada',
+                          backgroundColor: Colors.green,
+                          textColor: Colors.white,
+                        );
+                        provider.speak('Sincronizacion culminada');
                       },
                       child:
                           provider.isLoading
@@ -287,7 +356,8 @@ class DashboardMain extends StatelessWidget {
                                         'Cartilla ya registrada,desea abrirla?',
                                     action: SizedBox(
                                       width:
-                                          MediaQuery.of(context).size.width * 0.5,
+                                          MediaQuery.of(context).size.width *
+                                          0.5,
                                       child: Row(
                                         children: [
                                           Expanded(
@@ -344,7 +414,9 @@ class DashboardMain extends StatelessWidget {
                               );
                             } else {
                               int respuesta = await provider.insertarqr(qr);
-                              provider.speak('Cartilla registrada correctamente');
+                              provider.speak(
+                                'Cartilla registrada correctamente',
+                              );
                             }
                           } else {
                             provider.speak('Fecha de termino concluida');
@@ -413,7 +485,8 @@ class DashboardMain extends StatelessWidget {
                         String barcodeScanRes = await VerfrutApp().scanqr(
                           context,
                         );
-                        if (barcodeScanRes != "-1" || barcodeScanRes.isNotEmpty) {
+                        if (barcodeScanRes != "-1" ||
+                            barcodeScanRes.isNotEmpty) {
                           if (barcodeScanRes.length > 10) {
                             showDialog(
                               context: context,
@@ -439,7 +512,8 @@ class DashboardMain extends StatelessWidget {
                                 builder:
                                     (context) => AddTrabajador(
                                       qr: barcodeScanRes,
-                                      idcartilla: provider.cartillaseleccionada!,
+                                      idcartilla:
+                                          provider.cartillaseleccionada!,
                                     ),
                               ),
                             );
@@ -475,13 +549,15 @@ class DashboardMain extends StatelessWidget {
                       onTap: (i) {
                         // si el tab 3 no está habilitado, no permitimos ir
 
-                        if(provider.cartillaseleccionada!.codEnvContenedor==null){
-                          Fluttertoast.showToast(msg: 'No se puede acceder a esta pestaña');
+                        if (provider.cartillaseleccionada!.codEnvContenedor ==
+                            null) {
+                          Fluttertoast.showToast(
+                            msg: 'No se puede acceder a esta pestaña',
+                          );
                           provider.setTabIndex(0);
                           return;
-                        }else{
+                        } else {
                           provider.setTabIndex(i);
-
                         }
                       },
                       indicatorSize: TabBarIndicatorSize.tab,
@@ -515,10 +591,7 @@ class DashboardMain extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SvgPicture.asset(
-                                'assets/bins.svg',
-                                height: 14,
-                              ),
+                              SvgPicture.asset('assets/bins.svg', height: 14),
                               const SizedBox(width: 5),
                               Text(
                                 'Unid Cont: ${provider.contador}',
@@ -551,6 +624,80 @@ class DashboardMain extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showSyncProgressDialog(
+  BuildContext context,
+  TrabajadorxContratistaProvider syncProvider,
+) {
+  showDialog(
+    context: context,
+    useRootNavigator: true,
+    barrierDismissible: false,
+    builder: (context) {
+      return ChangeNotifierProvider.value(
+        value: syncProvider,
+        child: PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: Colors.white,
+            content: Consumer<TrabajadorxContratistaProvider>(
+              builder: (context, provider, child) {
+                final progress = provider.syncProgress.clamp(0, 1).toDouble();
+                final percentage = (progress * 100).round();
+
+                return SizedBox(
+                  width: 260,
+                  height: 150,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Sincronizando datos',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'MontserratB',
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      LinearProgressIndicator(
+                        minHeight: 8,
+                        value: progress,
+                        backgroundColor: const Color.fromRGBO(230, 236, 245, 1),
+                        color: const Color.fromRGBO(36, 99, 174, 1),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        '$percentage%',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'MontserratB',
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        provider.syncProgressMessage,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class _bottombar extends StatelessWidget {
@@ -678,22 +825,26 @@ class _bottombar extends StatelessWidget {
               },
             );
           },
-          child: provider.tabIndex==2? Text('Cerrar Unidad Contenedora',style: TextStyle(
-            fontFamily: 'MontserratB',
-            color: Colors.white,
-            fontSize: 20,
-          ))  : Text(
-            'Cerrar Cartilla',
-            style: TextStyle(
-              fontFamily: 'MontserratB',
-              color: Colors.white,
-              fontSize: 20,
-            ),
-          ),
+          child:
+              provider.tabIndex == 2
+                  ? Text(
+                    'Cerrar Unidad Contenedora',
+                    style: TextStyle(
+                      fontFamily: 'MontserratB',
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  )
+                  : Text(
+                    'Cerrar Cartilla',
+                    style: TextStyle(
+                      fontFamily: 'MontserratB',
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  ),
         ),
       ),
-
-
     );
   }
 }
@@ -705,170 +856,129 @@ class _cartillasCuarteles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (provider.cartillasdisponibles.isEmpty) {
+      return SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.23,
+      );
+    }
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height * 0.23,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.builder(
-        itemCount: provider.cartillasdisponibles.length + 1,
+        itemCount: provider.cartillasdisponibles.length,
         scrollDirection: Axis.horizontal,
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
         itemBuilder: (context, index) {
-          if (index != provider.cartillasdisponibles.length) {
-            String cuartel = provider.cartillasdisponibles[index].nomCuartel!;
-            String variedad = provider.cartillasdisponibles[index].nomVariedad!;
-            String labor = provider.cartillasdisponibles[index].nomActividad!;
-            String contratista =
-                provider.cartillasdisponibles[index].nomContratista!;
-            provider.cartillaseleccionada ??
-                (provider.cartillaseleccionada =
-                    provider.cartillasdisponibles.first);
-            String codenv =
-                provider.cartillasdisponibles[index].codEnv != 'null'
-                    ? provider.cartillasdisponibles[index].codEnv! +
-                        ' ' +
-                        provider.cartillasdisponibles[index].nomEnv!
-                    : '';
-            int cant_bins = provider.cartillasdisponibles[index].cantBins!;
-            return GestureDetector(
-              onTap: () async {
-                provider.cartillaseleccionada =
-                    provider.cartillasdisponibles[index];
-              },
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.18,
-                width: 190,
-                child: Card(
-                  color:
-                      provider.cartillaseleccionada!.idAndroidCartilla ==
-                              provider
-                                  .cartillasdisponibles[index]
-                                  .idAndroidCartilla
-                          ? Color.fromRGBO(36, 99, 174, 1)
-                          : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(
-                      width: 1,
-                      color: Color.fromRGBO(195, 195, 195, 1),
-                    ),
-                    borderRadius: BorderRadius.circular(20),
+          final cartilla = provider.cartillasdisponibles[index];
+          final selectedCartilla =
+              provider.cartillaseleccionada ??
+              provider.cartillasdisponibles.first;
+          final isSelected =
+              selectedCartilla.idAndroidCartilla == cartilla.idAndroidCartilla;
+          String cuartel = cartilla.nomCuartel!;
+          String variedad = cartilla.nomVariedad!;
+          String labor = cartilla.nomActividad!;
+          String codenv =
+              cartilla.codEnv != 'null'
+                  ? cartilla.codEnv! + ' ' + cartilla.nomEnv!
+                  : '';
+          int cant_bins = cartilla.cantBins!;
+          return GestureDetector(
+            onTap: () async {
+              provider.cartillaseleccionada = cartilla;
+            },
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.18,
+              width: 190,
+              child: Card(
+                color:
+                    isSelected ? Color.fromRGBO(36, 99, 174, 1) : Colors.white,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(
+                    width: 1,
+                    color: Color.fromRGBO(195, 195, 195, 1),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(
-                                    210,
-                                    172,
-                                    130,
-                                    0.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                height: 50,
-                                width: 50,
-                                child: Image.asset('assets/cuartel.png'),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color.fromRGBO(210, 172, 130, 0.5),
+                                borderRadius: BorderRadius.circular(20),
                               ),
+                              height: 50,
+                              width: 50,
+                              child: Image.asset('assets/cuartel.png'),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
 
-                        Text(
-                          cuartel,
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 14,
-                            color:
-                                provider
-                                            .cartillaseleccionada!
-                                            .idAndroidCartilla ==
-                                        provider
-                                            .cartillasdisponibles[index]
-                                            .idAndroidCartilla
-                                    ? Colors.white
-                                    : null,
-                          ),
+                      Text(
+                        cuartel,
+                        style: TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 14,
+                          color: isSelected ? Colors.white : null,
                         ),
-                        Text(
-                          variedad,
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 10,
-                            color:
-                                provider
-                                            .cartillaseleccionada!
-                                            .idAndroidCartilla ==
-                                        provider
-                                            .cartillasdisponibles[index]
-                                            .idAndroidCartilla
-                                    ? Colors.red
-                                    : Color.fromRGBO(36, 99, 174, 1),
-                          ),
+                      ),
+                      Text(
+                        variedad,
+                        style: TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 10,
+                          color:
+                              isSelected
+                                  ? Colors.red
+                                  : Color.fromRGBO(36, 99, 174, 1),
                         ),
-                        Text(
-                          labor,
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 10,
-                            color:
-                                provider
-                                            .cartillaseleccionada!
-                                            .idAndroidCartilla ==
-                                        provider
-                                            .cartillasdisponibles[index]
-                                            .idAndroidCartilla
-                                    ? Colors.white
-                                    : null,
-                          ),
+                      ),
+                      Text(
+                        labor,
+                        style: TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 10,
+                          color: isSelected ? Colors.white : null,
                         ),
-                        Text(
-                          codenv,
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 10,
-                            color:
-                                provider
-                                            .cartillaseleccionada!
-                                            .idAndroidCartilla ==
-                                        provider
-                                            .cartillasdisponibles[index]
-                                            .idAndroidCartilla
-                                    ? Colors.white
-                                    : null,
-                          ),
+                      ),
+                      Text(
+                        codenv,
+                        style: TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 10,
+                          color: isSelected ? Colors.white : null,
                         ),
-                        Text(
-                          'Cantidad de bins: $cant_bins ',
-                          style: TextStyle(
-                            fontFamily: 'MontserratR',
-                            fontSize: 10,
-                            color:
-                                provider
-                                            .cartillaseleccionada!
-                                            .idAndroidCartilla ==
-                                        provider
-                                            .cartillasdisponibles[index]
-                                            .idAndroidCartilla
-                                    ? Colors.white
-                                    : Color.fromRGBO(36, 99, 174, 1),
-                          ),
+                      ),
+                      Text(
+                        'Cantidad de bins: $cant_bins ',
+                        style: TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 10,
+                          color:
+                              isSelected
+                                  ? Colors.white
+                                  : Color.fromRGBO(36, 99, 174, 1),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          }
+            ),
+          );
         },
       ),
     );
@@ -888,34 +998,53 @@ class _listadoentregas extends StatelessWidget {
         String nombre = provider.listaentregas[index].nombre!;
         String entregas = provider.listaentregas[index].cantidad!.toString();
         String labor = provider.listaentregas[index].labor!;
-
+        String rut = provider.listaentregas[index].rut!;
+        String dv = provider.listaentregas[index].digito!;
+        String qr = provider.listaentregas[index].qr!;
+        final isSynced = provider.listaentregas[index].swsincronizado == '1';
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Card(
             color: Colors.white,
             shape: RoundedRectangleBorder(
-              side: const BorderSide(
-                width: 0.5,
-                color: Color.fromRGBO(195, 195, 195, 1),
+              side: BorderSide(
+                width: isSynced ? 1.5 : 0.5,
+                color:
+                    isSynced
+                        ? Colors.green
+                        : const Color.fromRGBO(195, 195, 195, 1),
               ),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   height: 70,
                   width: 70,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.only(left: 16, right: 8),
                   child: Image.asset('assets/trabajador.png'),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SizedBox(height: 4),
+                      Text(
+                        qr,
+                        style: const TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 12,
+                        ),
+                      ),
                       Text(
                         nombre,
+                        style: const TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '${rut}-${dv} ',
                         style: const TextStyle(
                           fontFamily: 'MontserratR',
                           fontSize: 12,
@@ -935,6 +1064,7 @@ class _listadoentregas extends StatelessWidget {
                           fontSize: 12,
                         ),
                       ),
+                      SizedBox(height: 4),
                     ],
                   ),
                 ),
@@ -1299,68 +1429,86 @@ insertarentrega(
   provider.listadoentregas(provider.cartillaseleccionada!.idAndroidCartilla!);
 }
 
-Future<void> sincronizaciontrabajadores(
+Future<List<String>> sincronizaciontrabajadores(
   TrabajadorxContratistaProvider provider,
-  BuildContext context,
 ) async {
+  final syncMessages = <String>[];
+
+  void addSyncMessage(String message) {
+    if (!syncMessages.contains(message)) {
+      syncMessages.add(message);
+    }
+  }
+
+  if (provider.cartillasdisponibles.isEmpty) {
+    provider.updateSyncProgress(1, 'No hay cartillas para sincronizar');
+    return syncMessages;
+  }
+
+  provider.updateSyncProgress(0.02, 'Consultando trabajadores');
   List<Trabajador> respuesta = await provider.getlistado(
     provider.cartillasdisponibles[0].idAndroidCartilla!,
   );
 
-  if (respuesta.isNotEmpty) {
-    respuesta.forEach(
-      (element) async => {
-        await provider.insertatrabajadorescontratista(element),
-      },
-    );
-  }
-
+  provider.updateSyncProgress(0.06, 'Consultando cartillas');
   List<Cartillaqr> respuestacartilla = await provider.getcartillastosync(false);
 
-  for (Cartillaqr lista in respuestacartilla) {
-    String mensaje = await provider.synccartillashoras(lista);
-    if (mensaje == 'error') {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return VerfrutApp.Dialogalert(
-            icono: Icons.cancel,
-            mensajecontent: 'Error sincronizando cartillas',
-          );
-        },
-      );
-    }
-  }
-
+  provider.updateSyncProgress(0.10, 'Consultando entregas');
   List<EntregaResponse> listaentregasnolocal = await provider.getentryforsync(
     false,
   );
 
-  for (EntregaResponse lista in listaentregasnolocal) {
-    String message = await provider.sync(lista);
+  final total =
+      respuesta.length + respuestacartilla.length + listaentregasnolocal.length;
+
+  if (total == 0) {
+    provider.updateSyncProgress(1, 'No hay datos pendientes');
+    return syncMessages;
+  }
+
+  var completed = 0;
+
+  void updateProgress(String message) {
+    provider.updateSyncProgress(0.10 + (completed / total) * 0.90, message);
+  }
+
+  void completeProgress(String message) {
+    completed++;
+    provider.updateSyncProgress(0.10 + (completed / total) * 0.90, message);
+  }
+
+  for (var i = 0; i < respuesta.length; i++) {
+    updateProgress('Sincronizando trabajadores ${i + 1}/${respuesta.length}');
+    await provider.insertatrabajadorescontratista(respuesta[i]);
+    completeProgress('Trabajadores ${i + 1}/${respuesta.length}');
+  }
+
+  for (var i = 0; i < respuestacartilla.length; i++) {
+    updateProgress(
+      'Sincronizando cartillas ${i + 1}/${respuestacartilla.length}',
+    );
+    String mensaje = await provider.synccartillashoras(respuestacartilla[i]);
+    if (mensaje == 'error') {
+      addSyncMessage('Error sincronizando cartillas');
+    }
+    completeProgress('Cartillas ${i + 1}/${respuestacartilla.length}');
+  }
+
+  for (var i = 0; i < listaentregasnolocal.length; i++) {
+    updateProgress(
+      'Sincronizando entregas ${i + 1}/${listaentregasnolocal.length}',
+    );
+    String message = await provider.sync(listaentregasnolocal[i]);
     if (message == 'error') {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return VerfrutApp.Dialogalert(
-            icono: Icons.cancel,
-            mensajecontent: 'Cartilla sincronizando cartillas ',
-          );
-        },
-      );
+      addSyncMessage('Error sincronizando entregas');
     }
     if (message == 'aprobada') {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return VerfrutApp.Dialogalert(
-            icono: Icons.cancel,
-            mensajecontent: 'Cartilla ya fue aprobada  ',
-          );
-        },
-      );
+      addSyncMessage('Cartilla ya fue aprobada');
     }
+    completeProgress('Entregas ${i + 1}/${listaentregasnolocal.length}');
   }
+
+  return syncMessages;
 }
 
 class _RedirectToLogin extends StatelessWidget {

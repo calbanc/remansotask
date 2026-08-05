@@ -72,7 +72,7 @@ class optionsProvider extends ChangeNotifier {
 
   getworkersbycontratista() async {
     var url = Uri.parse(
-      Env.baseUrl + '/trabajadorxcontratista/getworkersempcontrazona',
+      '${Env.baseUrl}/trabajadorxcontratista/getworkersempcontrazona',
     );
 
     final Map<String, dynamic> data = {

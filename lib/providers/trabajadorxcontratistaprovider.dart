@@ -248,6 +248,30 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  double _syncProgress = 0;
+  String _syncProgressMessage = '';
+
+  double get syncProgress => _syncProgress;
+  String get syncProgressMessage => _syncProgressMessage;
+
+  void startSyncProgress([String message = 'Preparando sincronizacion']) {
+    _syncProgress = 0;
+    _syncProgressMessage = message;
+    notifyListeners();
+  }
+
+  void updateSyncProgress(double progress, String message) {
+    _syncProgress = progress.clamp(0, 1).toDouble();
+    _syncProgressMessage = message;
+    notifyListeners();
+  }
+
+  void finishSyncProgress() {
+    _syncProgress = 0;
+    _syncProgressMessage = '';
+    notifyListeners();
+  }
+
   final String defaultLanguage = 'es-ES';
 
   FlutterTts _flutterTts = FlutterTts();
@@ -896,13 +920,13 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     final db = await database;
     final res = await db.rawQuery('''
       
-    SELECT C.NomCuartel,C.NomActividad,E.Nombre,SUM(E.CANTIDAD) AS 'Cantidad',E.IdAndroidCartilla,e.IdEntrega,E.Qr,E.IdTrabXContratista,E.Digito,E.Rut
+    SELECT C.NomCuartel,C.NomActividad,E.Nombre,SUM(E.CANTIDAD) AS 'Cantidad',E.IdAndroidCartilla,e.IdEntrega,E.Qr,E.IdTrabXContratista,E.Digito,E.Rut,E.SwSincronizado
       FROM ENTREGAS E
       INNER JOIN CARTILLAS C ON E.IdAndroidCartilla=C.IdAndroidCartilla
      
      
       where e.IdAndroidCartilla='$idcartilla' and e.Cantidad>0
-               GROUP by C.NomCuartel,C.NomActividad,E.Nombre,e.IdAndroidCartilla,E.IdEntrega
+               GROUP by C.NomCuartel,C.NomActividad,E.Nombre,e.IdAndroidCartilla,E.IdEntrega,E.SwSincronizado
     ''');
 
     final res2 = await db.rawQuery(

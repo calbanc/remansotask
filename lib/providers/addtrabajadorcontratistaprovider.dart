@@ -50,6 +50,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  Future<void>? _loadLastWorkerFuture;
 
   set isLoading(bool value) {
     _isLoading = value;
@@ -66,7 +67,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _path='';
+  String _path = '';
   String get path => _path;
   set path(String value) {
     _path = value;
@@ -248,12 +249,30 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
           res.map((e) => Trabajador.fromJson(e)).toList()
           :null;*/
   }
-  Future<void>procesardatos(String path) async{
+
+  Future<void> loadLastWorkerByQr(String qr) {
+    return _loadLastWorkerFuture ??= _loadLastWorkerByQr(qr);
+  }
+
+  Future<void> _loadLastWorkerByQr(String qr) async {
+    final trabajadores = await getlasttrabajadorbyqr(qr);
+    if (trabajadores.isEmpty) return;
+
+    final trabajador = trabajadores.first;
+    controlladornombre.text = trabajador.nombre;
+
+    final rut = trabajador.rut ?? '';
+    final digito = trabajador.digito ?? '';
+    controlladorrut.text = digito.isEmpty ? rut : '$rut-$digito';
+  }
+
+  Future<void> procesardatos(String path) async {
     final input = InputImage.fromFilePath(path);
     final result = await recognizer.processImage(input);
     final text = result.text;
     final parsed = ChileMrzParser.parseFromOcr(text);
-    controlladornombre.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
-    controlladorrut.text=' ${parsed.rutDigits}-${parsed.dv}';
+    controlladornombre.text =
+        '${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
+    controlladorrut.text = ' ${parsed.rutDigits}-${parsed.dv}';
   }
 }

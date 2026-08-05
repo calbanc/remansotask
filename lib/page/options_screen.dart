@@ -2,18 +2,14 @@ import 'dart:io';
 
 import 'package:verfwork/page/worker_screen.dart';
 import 'package:verfwork/providers/optionsProvider.dart';
-import 'package:verfwork/providers/provider.dart';
 import 'package:verfwork/util/VerfrutApp.dart';
 import 'package:excel/excel.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:path/path.dart';
 import 'package:share_plus/share_plus.dart';
-import '../response/EnvaseResponse.dart';
 import '../response/excel.dart';
 
 class optionsScreen extends StatelessWidget {
@@ -53,11 +49,14 @@ class _optionsScreen extends StatelessWidget {
                       );
                       var directory =
                           (await getApplicationDocumentsDirectory()).path;
-                      Share.shareXFiles([
-                        XFile('$directory/Informe_labores.xlsx'),
-                      ], text: 'Compartir informe');
+                      await SharePlus.instance.share(
+                        ShareParams(
+                          files: [XFile('$directory/Informe_labores.xlsx')],
+                          text: 'Compartir informe',
+                        ),
+                      );
                     } catch (e) {
-                      print(e.toString());
+                      debugPrint(e.toString());
                     }
                   },
                   child: Container(
@@ -105,17 +104,56 @@ class _optionsScreen extends StatelessWidget {
               padding: const EdgeInsets.only(top: 17),
               child: GestureDetector(
                 onTap: () async {
-                  Future.microtask(
-                    () => {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (_, __, ___) => workerScreen(provider: provider),
-                          transitionDuration: const Duration(seconds: 1),
+                  await exportLocalDatabase(context);
+                },
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: 70,
+
+                  decoration: BoxDecoration(
+                    color: Color.fromRGBO(36, 99, 174, 0.04),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 50,
+                        decoration: const BoxDecoration(
+                          color: Color.fromRGBO(36, 99, 174, 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.storage_outlined,
+                          color: Color.fromRGBO(36, 99, 174, 1),
                         ),
                       ),
-                    },
+                      Text(
+                        'Enviar BD por WhatsApp',
+                        style: TextStyle(
+                          fontFamily: 'MontserratR',
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(width: 50),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.only(top: 17),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder:
+                          (_, __, ___) => workerScreen(provider: provider),
+                      transitionDuration: const Duration(seconds: 1),
+                    ),
                   );
                 },
                 child: Container(
@@ -159,7 +197,6 @@ class _optionsScreen extends StatelessWidget {
                 ),
               ),
             ),
-
 
             Padding(
               padding: const EdgeInsets.only(top: 17),
@@ -205,6 +242,66 @@ class _optionsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> exportLocalDatabase(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final provider = context.read<optionsProvider>();
+
+    try {
+      final documentsDirectory = await getApplicationDocumentsDirectory();
+      final databaseFile = File(
+        '${documentsDirectory.path}/VerfrutContratista.db',
+      );
+
+      if (!await databaseFile.exists()) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('No se encontro la base de datos local'),
+          ),
+        );
+        return;
+      }
+
+      final db = await provider.database;
+      await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
+
+      final temporaryDirectory = await getTemporaryDirectory();
+      final exportFileName =
+          'VerfrutContratista_${_formatDateTimeForFile(DateTime.now())}.db';
+      final exportFile = await databaseFile.copy(
+        '${temporaryDirectory.path}/$exportFileName',
+      );
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile(
+              exportFile.path,
+              mimeType: 'application/octet-stream',
+              name: exportFileName,
+            ),
+          ],
+          text: 'Base de datos local $exportFileName',
+          subject: exportFileName,
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('No se pudo exportar la base de datos: $e')),
+      );
+    }
+  }
+
+  String _formatDateTimeForFile(DateTime dateTime) {
+    String twoDigits(int value) => value.toString().padLeft(2, '0');
+
+    return '${dateTime.year}'
+        '${twoDigits(dateTime.month)}'
+        '${twoDigits(dateTime.day)}_'
+        '${twoDigits(dateTime.hour)}'
+        '${twoDigits(dateTime.minute)}'
+        '${twoDigits(dateTime.second)}';
   }
 
   Future<void> createreportexcel(List<Excelreport> listaexcel) async {
@@ -329,7 +426,7 @@ class _optionsScreen extends StatelessWidget {
       var cellrut = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: j),
       );
-      cellrut.value = TextCellValue(listaexcel[i].rut!);
+      cellrut.value = TextCellValue(listaexcel[i].rut);
 
       var celldigito = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: j),
@@ -339,12 +436,12 @@ class _optionsScreen extends StatelessWidget {
       var cellnombre = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: j),
       );
-      cellnombre.value = TextCellValue(listaexcel[i].nombre!);
+      cellnombre.value = TextCellValue(listaexcel[i].nombre);
 
       var cellcantidad = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: j),
       );
-      cellcantidad.value = TextCellValue(listaexcel[i].cantidad.toString()!);
+      cellcantidad.value = TextCellValue(listaexcel[i].cantidad.toString());
 
       j++;
     }
@@ -353,7 +450,7 @@ class _optionsScreen extends StatelessWidget {
 
     var directory = (await getApplicationDocumentsDirectory()).path;
     if (fileBytes != null) {
-      File(join('$directory/Informe_labores.xlsx'))
+      File('$directory/Informe_labores.xlsx')
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes);
     }
