@@ -194,6 +194,8 @@ class _Login extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            SizedBox(height:5),
+
                             GestureDetector(
                               onTap: () async {
                                 try {
@@ -348,7 +350,7 @@ class _Login extends StatelessWidget {
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
-                                          //  title: Text( title! ,style: TextStyle(fontFamily: 'MontserratR'),) ,
+
                                           content: SizedBox(
                                             height: 220,
                                             child: Column(
@@ -357,10 +359,7 @@ class _Login extends StatelessWidget {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.center,
                                               children: [
-                                                SvgPicture.asset(
-                                                  'assets/isologo.svg',
-                                                ),
-                                                SizedBox(height: 10),
+
                                                 Text(
                                                   'Fecha de termino concluida, desea visualizar registros de cartilla',
                                                   style: TextStyle(
@@ -439,11 +438,15 @@ class _Login extends StatelessWidget {
                               },
                               child: Image(
                                 image: const AssetImage('assets/qrlogin.png'),
-                                width: MediaQuery.of(context).size.width * 0.7,
+                                width: MediaQuery.of(context).size.width * 0.5,
                               ),
                             ),
-                            const SizedBox(height: 5),
-                            SvgPicture.asset('assets/verfrut.svg'),
+                            Image.asset(
+                              'assets/iso.png',
+                              width: 60, // Ajusta este valor
+                              fit: BoxFit.contain,
+                            ),
+
                           ],
                         ),
                       ),
