@@ -82,7 +82,8 @@ class EditWorkerProvider extends ChangeNotifier {
       'dd/MM/yyyy',
     ).format(DateTime.now());
     final res = await db.rawUpdate('''
-      UPDATE ENTREGAS SET Rut='$rut' , Nombre='$nombre',Digito='$dv' WHERE Qr ='${trabajador.qr}' and Fecha='$now'
+      UPDATE ENTREGAS SET Rut='$rut' , Nombre='$nombre',Digito='$dv',
+      SwSincronizado='0' WHERE Qr ='${trabajador.qr}' and Fecha='$now'
     ''');
     return res;
   }

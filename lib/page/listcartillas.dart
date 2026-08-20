@@ -53,22 +53,6 @@ class _ListCartillaState extends State<ListCartilla> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            /*  EasyDateTimeLine(
-              initialDate: DateTime.now(),
-              locale: "es_Es",
-              onDateChange: ((selectedDate) {
-
-                setState(() {
-                  fechainicio=selectedDate.toString();
-                });
-
-              }),
-              headerProps: const EasyHeaderProps(
-                monthPickerType: MonthPickerType.switcher,
-                selectedDateFormat: SelectedDateFormat.fullDateDMY,
-
-              ),
-              ), */
             Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,

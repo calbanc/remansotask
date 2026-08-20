@@ -399,7 +399,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       "Digito": entrega.digito,
     };
     String parametros = json.encode(data);
-    var url = Uri.parse(Env.baseUrl + '/androidcartilladetalle/save');
+    var url = Uri.parse(Env.baseUrl + '/androidcartilladetalle/save_new');
     Map<String, String> header = new Map();
     header["content-type"] = "application/x-www-form-urlencoded";
     final response = await http.post(url, body: {"json": parametros});

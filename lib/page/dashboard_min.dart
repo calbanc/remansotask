@@ -505,7 +505,7 @@ class DashboardMain extends StatelessWidget {
                           List<Trabajador>? lista = await provider
                               .gettrabajadorbyqr(barcodeScanRes, idcartilla);
 
-                          if (lista!.isEmpty) {
+                          if (lista!. isEmpty) {
                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -1446,9 +1446,9 @@ Future<List<String>> sincronizaciontrabajadores(
   }
 
   provider.updateSyncProgress(0.02, 'Consultando trabajadores');
-  List<Trabajador> respuesta = await provider.getlistado(
+  /*List<Trabajador> respuesta = await provider.getlistado(
     provider.cartillasdisponibles[0].idAndroidCartilla!,
-  );
+  );*/
 
   provider.updateSyncProgress(0.06, 'Consultando cartillas');
   List<Cartillaqr> respuestacartilla = await provider.getcartillastosync(false);
@@ -1459,7 +1459,8 @@ Future<List<String>> sincronizaciontrabajadores(
   );
 
   final total =
-      respuesta.length + respuestacartilla.length + listaentregasnolocal.length;
+      //respuesta.length +
+          respuestacartilla.length + listaentregasnolocal.length;
 
   if (total == 0) {
     provider.updateSyncProgress(1, 'No hay datos pendientes');
@@ -1477,11 +1478,11 @@ Future<List<String>> sincronizaciontrabajadores(
     provider.updateSyncProgress(0.10 + (completed / total) * 0.90, message);
   }
 
-  for (var i = 0; i < respuesta.length; i++) {
+/*  for (var i = 0; i < respuesta.length; i++) {
     updateProgress('Sincronizando trabajadores ${i + 1}/${respuesta.length}');
     await provider.insertatrabajadorescontratista(respuesta[i]);
     completeProgress('Trabajadores ${i + 1}/${respuesta.length}');
-  }
+  }*/
 
   for (var i = 0; i < respuestacartilla.length; i++) {
     updateProgress(

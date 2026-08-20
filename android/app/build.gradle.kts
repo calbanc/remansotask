@@ -23,10 +23,10 @@ android {
         applicationId = "com.mobil.verfwork"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 25
+        minSdk = 31
         targetSdk = flutter.targetSdkVersion
-        versionCode = 35
-        versionName = "31"
+        versionCode = 38
+        versionName = "32"
     }
 
     buildTypes {
