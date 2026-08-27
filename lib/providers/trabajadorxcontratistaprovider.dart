@@ -420,15 +420,23 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   Future<void> getcartillasdisponibles() async {
     final now = DateTime.now();
 
-    var fecha = DateFormat('dd/MM/yyyy').format(now);
+    final fechasDisponibles = List.generate(
+      2,
+      (diasAtras) => DateFormat('dd/MM/yyyy').format(
+        DateTime(now.year, now.month, now.day).subtract(
+          Duration(days: diasAtras),
+        ),
+      ),
+    );
     final db = await database;
 
     final List<Map<String, dynamic>> res = await db.rawQuery('''
       SELECT C.*,(SELECT COUNT(_id) FROM BINS WHERE IdAndroidCartilla=C.IdAndroidCartilla ) as CANT_BINS,C.COD_ENV as 'NOM_ENV'
       FROM CARTILLAS C
-      WHERE C.FechaInicio='$fecha' and C.HORATERMINO in ('null' ,'00')
+      WHERE C.FechaInicio IN (?, ?)
+        AND C.HORATERMINO in ('null' ,'00')
       order by C.IdAndroidCartilla asc
-      ''');
+      ''', fechasDisponibles);
 
     cartillasdisponibles = List.generate(
       res.length,

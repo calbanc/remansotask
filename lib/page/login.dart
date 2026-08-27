@@ -226,14 +226,22 @@ class _Login extends StatelessWidget {
                                   final datefechainicio = DateFormat(
                                     'dd/MM/yy',
                                   ).parse(qr.fechainicio!);
-                                  final now = DateFormat(
-                                    'dd/MM/yy',
-                                  ).format(DateTime.now());
-                                  final fechainicio = DateFormat(
-                                    'dd/MM/yy',
-                                  ).format(datefechainicio);
+                                  final now = DateTime.now();
+                                  final hoy = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                  );
+                                  final inicio = DateTime(
+                                    datefechainicio.year,
+                                    datefechainicio.month,
+                                    datefechainicio.day,
+                                  );
+                                  final diasDesdeInicio =
+                                      hoy.difference(inicio).inDays;
 
-                                  if (now.compareTo(fechainicio) == 0) {
+                                  if (diasDesdeInicio >= 0 &&
+                                      diasDesdeInicio <= 1) {
                                     List<Cartillaqr> respuesta =
                                         await trabajadorcontratisprovider
                                             .consultaqr(qr);

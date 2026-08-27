@@ -134,12 +134,21 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
 
   Future<List<QrCartillaResponse>> getcartillasdisponibles() async {
     final now = DateTime.now();
-    DateTime fecha = new DateTime(now.year, now.month, now.day);
+    final fechasDisponibles = List.generate(
+      2,
+      (diasAtras) => DateFormat('dd/MM/yyyy').format(
+        DateTime(now.year, now.month, now.day).subtract(
+          Duration(days: diasAtras),
+        ),
+      ),
+    );
 
     final db = await database;
     final List<Map<String, dynamic>> res = await db.rawQuery('''
-      SELECT * FROM CARTILLAS WHERE FechaInicio='$fecha' and HoraTermino is null 
-      ''');
+      SELECT * FROM CARTILLAS
+      WHERE FechaInicio IN (?, ?)
+        AND HoraTermino is null
+      ''', fechasDisponibles);
 
     return List.generate(
       res.length,
