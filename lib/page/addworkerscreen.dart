@@ -1,5 +1,5 @@
-import 'package:verfwork/providers/addtrabajadorcontratistaprovider.dart';
 import 'package:verfwork/util/VerfrutApp.dart';
+import 'package:verfwork/util/validar_rut.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -12,12 +12,6 @@ class addworkerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool _validarut(String? rut) {
-      if (rut == null) return false;
-      dynamic regExp = RegExp(r'(^(\d{1,2}(?:[\.]?\d{3}){2}-[\dkK])$)');
-      return regExp.hasMatch(rut);
-    }
-
     return Scaffold(
       appBar: VerfrutApp.Verfrutapp(title: 'Agregar Trabajador'),
       body: Form(
@@ -45,9 +39,7 @@ class addworkerScreen extends StatelessWidget {
               child: TextFormField(
                 controller: provider.rutctrl,
                 validator: (value) {
-                  return _validarut(value)
-                      ? null
-                      : 'Debe ingresar un rut valido';
+                  return validarDocumento(value, validarRutChile: false);
                 },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(

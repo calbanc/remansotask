@@ -20,6 +20,8 @@ import '../response/ActividadesResponse.dart';
 import '../response/EnvaseResponse.dart';
 import '../response/excel.dart';
 import '../response/qrcartilla_response.dart';
+import '../util/validar_rut.dart';
+import '../services/entrega_sync_service.dart';
 
 class TrabajadorxContratistaProvider extends ChangeNotifier {
   TextEditingController maxenvController = TextEditingController(text: '');
@@ -372,36 +374,14 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     return response;
   }
 
-  Future<String> sync(EntregaResponse entrega) async {
-    final Map<String, dynamic> data = {
-      'IdCartilla': entrega.idcartilla,
-      'Qr': entrega.qr,
-      "Fecha": entrega.fecha,
-      "Cantidad": entrega.cantidad,
-      "Nombre_trabajador": entrega.nombre_trabajador,
-      "IdEntrega": entrega.identrega,
-      "Rut": entrega.rut,
-      "IdTrabajadorXContratista": entrega.idtrabajadorxcontratista,
-      "Digito": entrega.digito,
-      "SW_EXTRANJERO_SIN_DOCUMENTO": entrega.swExtranjeroSinDocumento,
-    };
-    String parametros = json.encode(data);
-    var url = Uri.parse(Env.baseUrl + '/androidcartilladetalle/save_new');
-    Map<String, String> header = new Map();
-    header["content-type"] = "application/x-www-form-urlencoded";
-    final response = await http.post(url, body: {"json": parametros});
-
-    if (response.statusCode == 200) {
-      await updateSync(entrega.identrega.toString()!);
-      return 'ok';
-    } else {
-      if (response.statusCode == 500) {
-        await updateSync(entrega.identrega.toString()!);
-        return 'aprobada';
-      } else {
-        return 'error';
-      }
-    }
+  Future<String> sync(EntregaResponse entrega) {
+    return sincronizarEntrega(
+      entrega: entrega,
+      baseUrl: Env.baseUrl,
+      marcarSincronizada: () async {
+        await updateSync(entrega.identrega.toString());
+      },
+    );
   }
 
   Future<void> getcartillasdisponibles() async {
@@ -731,6 +711,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   }
 
   Future<int> insertatrabajadorescontratista(Trabajador trabajador) async {
+    asegurarRutParaGuardar(trabajador.rut);
     final db = await database;
     final res = await db
         .delete(
@@ -785,6 +766,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   }
 
   Future<int> insertentry(Entrega entry) async {
+    asegurarRutParaGuardar(entry.rut);
     final db = await database;
     final res = await db.insert('ENTREGAS', entry.toJson());
     return res;
@@ -917,7 +899,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     final db = await database;
     final res = await db.rawQuery('''
       
-    SELECT C.NomCuartel,C.NomActividad,E.Nombre,SUM(E.CANTIDAD) AS 'Cantidad',E.IdAndroidCartilla,e.IdEntrega,E.Qr,E.IdTrabXContratista,E.Digito,E.Rut,E.SwSincronizado
+    SELECT C.NomCuartel,C.NomActividad,E.Nombre,SUM(E.CANTIDAD) AS 'Cantidad',E.IdAndroidCartilla,e.IdEntrega,E.Qr,E.IdTrabXContratista,E.Digito,E.Rut,E.SwSincronizado,E.SW_EXTRANJERO_SIN_DOCUMENTO
       FROM ENTREGAS E
       INNER JOIN CARTILLAS C ON E.IdAndroidCartilla=C.IdAndroidCartilla
      

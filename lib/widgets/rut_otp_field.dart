@@ -47,8 +47,8 @@ class _RutOtpFieldState extends State<RutOtpField> {
   @override
   void didUpdateWidget(covariant RutOtpField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.validarRutChile != widget.validarRutChile &&
-        _dvController.text.isNotEmpty) {
+    if (oldWidget.validarRutChile != widget.validarRutChile) {
+      if (widget.validarRutChile) _syncFromRutController();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fieldKey.currentState?.validate();
       });
@@ -75,12 +75,27 @@ class _RutOtpFieldState extends State<RutOtpField> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.validarRutChile) {
+      return TextFormField(
+        controller: widget.controller,
+        style: widget.style,
+        keyboardType: TextInputType.text,
+        textInputAction: TextInputAction.done,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        validator: widget.validator,
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
+        ),
+      );
+    }
+
     return FormField<String>(
       key: _fieldKey,
       initialValue: _rutValue,
       validator: (value) {
         if (!_isComplete) return 'Debe completar todos los campos del rut';
-        return widget.validator(value);
+        return widget.validator(widget.controller.text);
       },
       builder: (field) {
         final borderColor = field.hasError ? Colors.red : Colors.grey;
@@ -270,6 +285,7 @@ class _RutOtpFieldState extends State<RutOtpField> {
   }
 
   void _syncFromRutController() {
+    if (!widget.validarRutChile) return;
     final text = widget.controller.text.toUpperCase().trim();
     final raw = text.replaceAll(RegExp(r'[^0-9K]'), '');
 

@@ -7,6 +7,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../page/mrz/chile_mrz_parser.dart';
 import 'db_provider.dart';
+import '../util/validar_rut.dart';
 
 class AddTrabajadorContratistaProvider extends ChangeNotifier {
   final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
@@ -73,6 +74,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   Future<Database> initDB() => DBProvider.db.database;
 
   Future<int> insertnewtrabajadorcontratista(Trabajador trabajador) async {
+    asegurarRutParaGuardar(trabajador.rut);
     final db = await database;
     String rut = trabajador.rut!;
     String qr = trabajador.qr;
@@ -124,8 +126,9 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   }
 
   Future<int> insertentry(Entrega entry) async {
+    asegurarRutParaGuardar(entry.rut);
     final db = await database;
-    entry.swExtranjeroSinDocumento = validarut ? 1 : 0;
+    entry.swExtranjeroSinDocumento = validarut ? 0 : 1;
     final res = await db.insert('ENTREGAS', entry.toJson());
     return res;
   }
@@ -220,8 +223,10 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
 
   Future<List<Trabajador>?> gettrabajadorbyrut(String rut) async {
     final db = await database;
-    final res = await db.rawQuery(
-      ''' SELECT * FROM TRABAJADORESXCONTRATISTA WHERE Rut='$rut' ''',
+    final res = await db.query(
+      'TRABAJADORESXCONTRATISTA',
+      where: 'Rut = ?',
+      whereArgs: [rut],
     );
     return res.isNotEmpty
         ? res.map((e) => Trabajador.fromJson(e)).toList()

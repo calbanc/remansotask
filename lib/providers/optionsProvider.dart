@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../const/env.dart';
+import '../util/validar_rut.dart';
 import '../response/CartillaQrResponse.dart';
 import '../response/EnvaseResponse.dart';
 import '../response/TrabajadorxContratista.dart';
@@ -95,6 +96,7 @@ class optionsProvider extends ChangeNotifier {
     String nombre,
     String sexo,
   ) async {
+    final documento = separarDocumento(rut);
     var url = Uri.parse(
       Env.baseUrl + '/trabajadorxcontratista/savetrabxcontratista',
     );
@@ -103,7 +105,8 @@ class optionsProvider extends ChangeNotifier {
       'IdEmpresa': idempresa,
       'IdContratista': idcontratista,
       'IdZona': idzona,
-      'Rut': rut,
+      'Rut': documento.rut,
+      'Digito': documento.digito,
       'Nombre': nombre,
       'Sexo': sexo,
     };

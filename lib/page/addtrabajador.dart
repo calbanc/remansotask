@@ -104,73 +104,101 @@ class _addTrabajador extends StatelessWidget {
                   ),
                 ),
 
-                if (provider.validarut && provider.path == '')
+                if (provider.validarut)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 30,
                       vertical: 16,
                     ),
-                    child: GestureDetector(
-                      onTap: () async {
-                        final image = await _picker.pickImage(
-                          source: ImageSource.camera,
-                        );
-                        if (image != null) {
-                          provider.path = image.path;
-                          await provider.procesardatos(image.path);
-                        }
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: 220,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 16,
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Toca aqui para tomar foto al reverso del Documento de Identidad ',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color.fromRGBO(
+                              36,
+                              99,
+                              174,
+                              1,
+                            ),
+                            backgroundColor: const Color.fromRGBO(
+                              230,
+                              236,
+                              245,
+                              1,
+                            ),
+                            minimumSize: const Size.fromHeight(48),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            side: const BorderSide(
+                              color: Color.fromRGBO(36, 99, 174, 1),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                          icon: const Icon(Icons.camera_alt_outlined, size: 22),
+                          label: Text(
+                            provider.path.isEmpty
+                                ? 'Fotografiar documento'
+                                : 'Volver a fotografiar documento',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'MontserratB',
+                              fontSize: 12,
+                            ),
+                          ),
+                          onPressed:
+                              provider.isLoading
+                                  ? null
+                                  : () async {
+                                    FocusScope.of(context).unfocus();
+                                    provider.isLoading = true;
+                                    try {
+                                      final image = await _picker.pickImage(
+                                        source: ImageSource.camera,
+                                      );
+                                      if (image == null || !context.mounted) {
+                                        return;
+                                      }
+                                      await provider.procesardatos(image.path);
+                                      if (!context.mounted) return;
+                                      provider.path = image.path;
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'No se pudo leer el documento. Ingresa los datos manualmente.',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (context.mounted) {
+                                        provider.isLoading = false;
+                                      }
+                                    }
+                                  },
                         ),
-                      ),
+                        if (provider.path.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(9),
+                            child: Image.file(
+                              File(provider.path),
+                              height: 180,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                provider.path == ''
-                    ? Container()
-                    : Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 16,
-                      ),
-                      child: GestureDetector(
-                        onTap: () async {
-                          final image = await _picker.pickImage(
-                            source: ImageSource.camera,
-                          );
-                          if (image != null) {
-                            provider.path = image.path;
-                            await provider.procesardatos(image.path);
-                          }
-                        },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: 220,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          child: Image.file(File(provider.path)),
-                        ),
-                      ),
-                    ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -182,11 +210,10 @@ class _addTrabajador extends StatelessWidget {
                     style: TextStyle(fontFamily: 'MontserratR'),
                     controller: provider.controlladorrut,
                     validator: (value) {
-                      return (value == null || value.isEmpty)
-                          ? 'Debe ingresar un rut'
-                          : !provider.validarut || validarRut(value)
-                          ? null
-                          : 'Debe ingresar un rut valido';
+                      return validarDocumento(
+                        value,
+                        validarRutChile: provider.validarut,
+                      );
                     },
                     labelText: 'Rut/DNI Trabajador',
                   ),
@@ -280,11 +307,11 @@ class _addTrabajador extends StatelessWidget {
 
                         var shouldClose = false;
                         try {
-                          final rutOtp = provider.controlladorrut.text
-                              .toUpperCase()
-                              .replaceAll(RegExp(r'[^0-9K]'), '');
-                          final rut = rutOtp.substring(0, rutOtp.length - 1);
-                          final digito = rutOtp.substring(rutOtp.length - 1);
+                          final documento = separarDocumento(
+                            provider.controlladorrut.text,
+                          );
+                          final rut = documento.rut;
+                          final digito = documento.digito;
                           provider.controlladordigito.text = digito;
 
                           final existeTrabajador = await provider

@@ -13,10 +13,11 @@ import 'package:sqflite/sqflite.dart';
 
 import '../page/mrz/chile_mrz_parser.dart';
 import '../response/listadoentrega_response.dart';
+import '../util/validar_rut.dart';
 
 class EditWorkerProvider extends ChangeNotifier {
   final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
-  String _path='';
+  String _path = '';
   String get path => _path;
   set path(String value) {
     _path = value;
@@ -63,7 +64,7 @@ class EditWorkerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _validarut = false;
+  bool _validarut = true;
 
   bool get validarut => _validarut;
   set validarut(value) {
@@ -76,38 +77,53 @@ class EditWorkerProvider extends ChangeNotifier {
   }
 
   Future<int> updateworkerentry(
-      String rut, String nombre, ListadoEntregaResponse trabajador,String dv) async {
+    String rut,
+    String nombre,
+    ListadoEntregaResponse trabajador,
+    String dv,
+  ) async {
+    asegurarRutParaGuardar(rut);
     final db = await database;
-    final now = DateFormat(
-      'dd/MM/yyyy',
-    ).format(DateTime.now());
-    final res = await db.rawUpdate('''
-      UPDATE ENTREGAS SET Rut='$rut' , Nombre='$nombre',Digito='$dv',
-      SwSincronizado='0' WHERE Qr ='${trabajador.qr}' and Fecha='$now'
-    ''');
+    final now = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final res = await db.update(
+      'ENTREGAS',
+      {
+        'Rut': rut,
+        'Nombre': nombre,
+        'Digito': dv,
+        'SW_EXTRANJERO_SIN_DOCUMENTO': validarut ? 0 : 1,
+        'SwSincronizado': '0',
+      },
+      where: 'Qr = ? AND Fecha = ?',
+      whereArgs: [trabajador.qr, now],
+    );
     return res;
   }
-  Future<void>procesardatos(String path) async{
+
+  Future<void> procesardatos(String path) async {
     final input = InputImage.fromFilePath(path);
     final result = await recognizer.processImage(input);
     final text = result.text;
     final parsed = ChileMrzParser.parseFromOcr(text);
-    controllername.text='${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
+    controllername.text =
+        '${parsed!.nombresCompletos} ${parsed!.apellidoPaterno} ${parsed.apellidoMaterno!}';
 
-    controllerrut.text='${parsed.rutDigits}-${parsed.dv}';
+    controllerrut.text = '${parsed.rutDigits}-${parsed.dv}';
     notifyListeners();
   }
 
-  void cargardatosiniciales(ListadoEntregaResponse response){
-    String dv=response.digito??'';
-    if(dv.isNotEmpty){
-      String rut=response.rut!;
-       if(response.rut!.contains('-',1)) rut=response.rut!.substring(0, response.rut!.indexOf('-'));
-      controllerrut.text='${rut}-${response.digito}';
-    }else{
-      controllerrut.text=response.rut!;
+  void cargardatosiniciales(ListadoEntregaResponse response) {
+    _validarut = response.swExtranjeroSinDocumento == 0;
+    String dv = response.digito ?? '';
+    if (dv.isNotEmpty) {
+      String rut = response.rut!;
+      if (response.rut!.contains('-', 1))
+        rut = response.rut!.substring(0, response.rut!.indexOf('-'));
+      controllerrut.text = '${rut}-${response.digito}';
+    } else {
+      controllerrut.text = response.rut!;
     }
-    controllername.text=response.nombre!;
+    controllername.text = response.nombre!;
     notifyListeners();
   }
 }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:verfwork/providers/addtrabajadorcontratistaprovider.dart';
+import 'package:verfwork/providers/editworkerprovider.dart';
 import 'package:verfwork/response/Entrega.dart';
 import 'package:verfwork/response/entrega_response.dart';
+import 'package:verfwork/response/listadoentrega_response.dart';
+import 'package:verfwork/response/TrabajadorContratistaResponse.dart';
 import 'package:verfwork/util/validar_rut.dart';
 import 'package:verfwork/widgets/rut_otp_field.dart';
 
@@ -77,6 +81,201 @@ void main() {
     expect(Entrega.fromJson(json).swExtranjeroSinDocumento, 1);
   });
 
+  test('Al editar se restaura el estado guardado de Validar Rut Chile', () {
+    final provider = EditWorkerProvider();
+    for (final value in [0, 1, '0', '1', null]) {
+      final trabajador = ListadoEntregaResponse.fromJson({
+        'Rut': '12345678',
+        'Digito': '5',
+        'Nombre': 'Trabajador',
+        'SW_EXTRANJERO_SIN_DOCUMENTO': value,
+      });
+      provider.cargardatosiniciales(trabajador);
+      expect(provider.validarut, value == 0 || value == '0');
+    }
+  });
+
+  test(
+    'Alta y edicion guardan extranjero como inverso de Validar Rut Chile',
+    () async {
+      for (final validar in [true, false]) {
+        final db = _RecordingDatabase();
+        final alta = _AddProviderWithDatabase(db)..validarut = validar;
+        final entrega = Entrega(
+          nombre: 'Trabajador',
+          rut: '12345678',
+          digito: '5',
+        );
+        await alta.insertentry(entrega);
+        final esperado = validar ? 0 : 1;
+        expect(db.saved!['SW_EXTRANJERO_SIN_DOCUMENTO'], esperado);
+        expect(entrega.swExtranjeroSinDocumento, esperado);
+
+        final trabajador = ListadoEntregaResponse.fromJson({
+          ...db.saved!,
+          'Qr': 'QR1',
+        });
+        final edicion = _EditProviderWithDatabase(db)
+          ..cargardatosiniciales(trabajador);
+        expect(edicion.validarut, validar);
+        await edicion.updateworkerentry(
+          '12345678',
+          'Trabajador',
+          trabajador,
+          '5',
+        );
+        expect(db.saved!['SW_EXTRANJERO_SIN_DOCUMENTO'], esperado);
+        expect(db.saved!['SwSincronizado'], '0');
+
+        edicion.validarut = !validar;
+        await edicion.updateworkerentry(
+          '12345678',
+          'Trabajador',
+          trabajador,
+          '5',
+        );
+        expect(db.saved!['SW_EXTRANJERO_SIN_DOCUMENTO'], validar ? 1 : 0);
+      }
+    },
+  );
+
+  test('Sin modulo chileno exige exactamente ocho digitos y un DV', () {
+    for (final input in [
+      '12345678-4',
+      '123456784',
+      '12.345.678-4',
+      '12.345.678-k',
+    ]) {
+      expect(
+        validarDocumento(input, validarRutChile: false),
+        isNull,
+        reason: input,
+      );
+    }
+    for (final input in [
+      null,
+      '',
+      '123',
+      '12345678',
+      '1234567-4',
+      '1.234.567-4',
+      '12345678-',
+      '12345678-A',
+      'PE-AB123456789',
+      '12.34.5678-4',
+      '123456789-0',
+      '123456789012-3',
+      '123.456.789.012-k',
+    ]) {
+      expect(
+        validarDocumento(input, validarRutChile: false),
+        isNotNull,
+        reason: '$input',
+      );
+    }
+    expect(validarDocumento('12345678-4', validarRutChile: true), isNotNull);
+  });
+
+  test('Separa el cuerpo y el DV sin importar si se calcula el modulo', () {
+    for (final input in ['12345678-4', '123456784', '12.345.678-4']) {
+      final documento = separarDocumento(input);
+      expect(documento, (rut: '12345678', digito: '4'));
+      final entrega = Entrega(
+        nombre: 'Trabajador',
+        rut: documento.rut,
+        digito: documento.digito,
+        swExtranjeroSinDocumento: 0,
+      );
+      expect(entrega.toJson()['Rut'], '12345678');
+      expect(entrega.toJson()['Digito'], '4');
+    }
+    expect(separarDocumento('12.345.678-k'), (rut: '12345678', digito: 'K'));
+  });
+
+  test('Al editar sin validar Chile conserva cuerpo y DV separados', () {
+    final provider = EditWorkerProvider();
+    provider.cargardatosiniciales(
+      ListadoEntregaResponse(
+        rut: '12345678',
+        digito: '4',
+        nombre: 'Trabajador',
+        swExtranjeroSinDocumento: 1,
+      ),
+    );
+    expect(provider.validarut, isFalse);
+    expect(provider.controllerrut.text, '12345678-4');
+    expect(separarDocumento(provider.controllerrut.text), (
+      rut: '12345678',
+      digito: '4',
+    ));
+  });
+
+  test('Rut para guardar solo acepta entre uno y ocho digitos ASCII', () {
+    for (final rut in ['1', '12345678', '00001234']) {
+      expect(esRutParaGuardar(rut), isTrue);
+      expect(() => asegurarRutParaGuardar(rut), returnsNormally);
+    }
+    for (final rut in [
+      null,
+      '',
+      '123456789',
+      '1234567K',
+      '12.345.678',
+      '12345678-5',
+      ' 123',
+      '123 ',
+      '1234567\n',
+      '123\u0000',
+      '١٢٣٤٥٦٧٨',
+      '１２３４５６７８',
+    ]) {
+      expect(esRutParaGuardar(rut), isFalse, reason: '$rut');
+      expect(() => asegurarRutParaGuardar(rut), throwsFormatException);
+    }
+  });
+
+  test('No recorta ni limpia documentos invalidos para poder guardarlos', () {
+    for (final rut in [
+      '123456789-0',
+      '123456789012-3',
+      '123.456.789.012-k',
+      '1234567A-4',
+      '12.34.5678-4',
+      '12345678--4',
+    ]) {
+      expect(() => separarDocumento(rut), throwsFormatException, reason: rut);
+    }
+  });
+
+  test(
+    'Los proveedores rechazan Rut invalido antes de insertar o actualizar',
+    () async {
+      final alta = AddTrabajadorContratistaProvider();
+      final edicion = EditWorkerProvider();
+      for (final rut in ['123456789', '1234567K', '12.345.678']) {
+        await expectLater(
+          alta.insertentry(Entrega(nombre: 'Trabajador', rut: rut)),
+          throwsFormatException,
+        );
+        await expectLater(
+          alta.insertnewtrabajadorcontratista(
+            Trabajador(nombre: 'Trabajador', qr: 'Q1', rut: rut),
+          ),
+          throwsFormatException,
+        );
+        await expectLater(
+          edicion.updateworkerentry(
+            rut,
+            'Trabajador',
+            ListadoEntregaResponse(),
+            '5',
+          ),
+          throwsFormatException,
+        );
+      }
+    },
+  );
+
   Future<void> showField(
     WidgetTester tester,
     TextEditingController controller, {
@@ -93,10 +292,7 @@ void main() {
               validarRutChile: validar,
               labelText: 'Rut/DNI Trabajador',
               validator:
-                  (value) =>
-                      !validar || validarRut(value)
-                          ? null
-                          : 'Debe ingresar un rut valido',
+                  (value) => validarDocumento(value, validarRutChile: validar),
             ),
           ),
         ),
@@ -182,4 +378,93 @@ void main() {
     await tester.pump();
     expect(formKey.currentState!.validate(), isFalse);
   });
+
+  testWidgets('Sin modulo acepta ocho digitos y DV, pero rechaza incompletos', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    await showField(tester, controller, validar: false, formKey: formKey);
+    expect(find.byType(TextFormField), findsOneWidget);
+    for (final input in [
+      '123',
+      '12345678',
+      '1234567-4',
+      'PE-AB123456789',
+      '123456789012-3',
+    ]) {
+      await tester.enterText(find.byType(TextFormField), input);
+      await tester.pump();
+      expect(formKey.currentState!.validate(), isFalse);
+    }
+    for (final input in ['12345678-4', '12345678-K']) {
+      await tester.enterText(find.byType(TextFormField), input);
+      await tester.pump();
+      expect(formKey.currentState!.validate(), isTrue);
+      expect(controller.text, input);
+    }
+  });
+
+  testWidgets(
+    'Desactivar elimina el error y conserva el documento al alternar',
+    (tester) async {
+      final controller = TextEditingController(text: '12345678-4');
+      final formKey = GlobalKey<FormState>();
+      await showField(tester, controller, formKey: formKey);
+      expect(formKey.currentState!.validate(), isFalse);
+      await tester.pump();
+      await showField(tester, controller, validar: false, formKey: formKey);
+      expect(formKey.currentState!.validate(), isTrue);
+      expect(find.text('Debe ingresar un rut valido'), findsNothing);
+      await tester.enterText(find.byType(TextFormField), '12345678-K');
+      await showField(tester, controller, formKey: formKey);
+      expect(formKey.currentState!.validate(), isFalse);
+      await showField(tester, controller, validar: false, formKey: formKey);
+      expect(controller.text, '12345678-K');
+      expect(formKey.currentState!.validate(), isTrue);
+    },
+  );
+}
+
+class _RecordingDatabase extends Fake implements Database {
+  Map<String, Object?>? saved;
+
+  @override
+  Future<int> insert(
+    String table,
+    Map<String, Object?> values, {
+    String? nullColumnHack,
+    ConflictAlgorithm? conflictAlgorithm,
+  }) async {
+    saved = Map.of(values);
+    return 1;
+  }
+
+  @override
+  Future<int> update(
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+    ConflictAlgorithm? conflictAlgorithm,
+  }) async {
+    saved = Map.of(values);
+    return 1;
+  }
+}
+
+class _AddProviderWithDatabase extends AddTrabajadorContratistaProvider {
+  _AddProviderWithDatabase(this.db);
+  final Database db;
+
+  @override
+  Future<Database> get database async => db;
+}
+
+class _EditProviderWithDatabase extends EditWorkerProvider {
+  _EditProviderWithDatabase(this.db);
+  final Database db;
+
+  @override
+  Future<Database> get database async => db;
 }

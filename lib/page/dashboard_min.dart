@@ -13,6 +13,7 @@ import 'package:verfwork/providers/provider.dart';
 import 'package:verfwork/response/CartillaQrResponse.dart';
 import 'package:verfwork/response/response.dart';
 import 'package:verfwork/util/VerfrutApp.dart';
+import 'package:verfwork/widgets/sync_errors_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -175,7 +176,9 @@ class DashboardMain extends StatelessWidget {
                           );
                           provider.updateSyncProgress(
                             1,
-                            'Sincronizacion finalizada',
+                            syncMessages.isEmpty
+                                ? 'Sincronizacion finalizada'
+                                : 'Sincronizacion finalizada con errores',
                           );
                           await Future.delayed(
                             const Duration(milliseconds: 300),
@@ -198,10 +201,10 @@ class DashboardMain extends StatelessWidget {
                           showDialog(
                             context: context,
                             builder: (context) {
-                              return VerfrutApp.Dialogalert(
-                                icono: Icons.cancel,
-                                mensajecontent:
-                                    'error sincronizando datos $syncError',
+                              return SyncErrorsDialog(
+                                messages: [
+                                  'Error sincronizando datos: $syncError',
+                                ],
                               );
                             },
                           );
@@ -224,12 +227,13 @@ class DashboardMain extends StatelessWidget {
                           showDialog(
                             context: context,
                             builder: (context) {
-                              return VerfrutApp.Dialogalert(
-                                icono: Icons.cancel,
-                                mensajecontent: syncMessages.join('\n'),
-                              );
+                              return SyncErrorsDialog(messages: syncMessages);
                             },
                           );
+                          provider.speak(
+                            'Sincronizacion finalizada con errores',
+                          );
+                          return;
                         }
 
                         Fluttertoast.showToast(
@@ -505,7 +509,7 @@ class DashboardMain extends StatelessWidget {
                           List<Trabajador>? lista = await provider
                               .gettrabajadorbyqr(barcodeScanRes, idcartilla);
 
-                          if (lista!. isEmpty) {
+                          if (lista!.isEmpty) {
                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -1450,7 +1454,7 @@ Future<List<String>> sincronizaciontrabajadores(
 
   final total =
       //respuesta.length +
-          respuestacartilla.length + listaentregasnolocal.length;
+      respuestacartilla.length + listaentregasnolocal.length;
 
   if (total == 0) {
     provider.updateSyncProgress(1, 'No hay datos pendientes');
@@ -1468,7 +1472,7 @@ Future<List<String>> sincronizaciontrabajadores(
     provider.updateSyncProgress(0.10 + (completed / total) * 0.90, message);
   }
 
-/*  for (var i = 0; i < respuesta.length; i++) {
+  /*  for (var i = 0; i < respuesta.length; i++) {
     updateProgress('Sincronizando trabajadores ${i + 1}/${respuesta.length}');
     await provider.insertatrabajadorescontratista(respuesta[i]);
     completeProgress('Trabajadores ${i + 1}/${respuesta.length}');
@@ -1490,11 +1494,8 @@ Future<List<String>> sincronizaciontrabajadores(
       'Sincronizando entregas ${i + 1}/${listaentregasnolocal.length}',
     );
     String message = await provider.sync(listaentregasnolocal[i]);
-    if (message == 'error') {
-      addSyncMessage('Error sincronizando entregas');
-    }
-    if (message == 'aprobada') {
-      addSyncMessage('Cartilla ya fue aprobada');
+    if (message != 'ok') {
+      addSyncMessage(message);
     }
     completeProgress('Entregas ${i + 1}/${listaentregasnolocal.length}');
   }

@@ -35,6 +35,23 @@ class DBProvider extends ChangeNotifier {
             'SW_EXTRANJERO_SIN_DOCUMENTO INTEGER NOT NULL DEFAULT 1',
           );
         }
+        for (final table in ['ENTREGAS', 'TRABAJADORESXCONTRATISTA']) {
+          for (final operation in ['INSERT', 'UPDATE OF Rut']) {
+            final suffix = operation == 'INSERT' ? 'insert' : 'update';
+            await db.execute('''
+              CREATE TRIGGER IF NOT EXISTS validar_rut_${table}_$suffix
+              BEFORE $operation ON $table
+              WHEN NEW.Rut IS NULL
+                OR typeof(NEW.Rut) <> 'text'
+                OR length(NEW.Rut) NOT BETWEEN 1 AND 8
+                OR NEW.Rut GLOB '*[^0-9]*'
+                OR instr(NEW.Rut, char(0)) > 0
+              BEGIN
+                SELECT RAISE(ABORT, 'Rut debe contener de 1 a 8 digitos numericos');
+              END;
+            ''');
+          }
+        }
       },
       onCreate: (Database db, int version) async {
         await db.execute(''' CREATE TABLE CONTADOR_BINS(
