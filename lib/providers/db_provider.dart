@@ -25,7 +25,17 @@ class DBProvider extends ChangeNotifier {
     return await openDatabase(
       path,
       version: Env.dbversion,
-      onOpen: (db) => {},
+      onOpen: (db) async {
+        final columns = await db.rawQuery('PRAGMA table_info(ENTREGAS)');
+        if (!columns.any(
+          (column) => column['name'] == 'SW_EXTRANJERO_SIN_DOCUMENTO',
+        )) {
+          await db.execute(
+            'ALTER TABLE ENTREGAS ADD COLUMN '
+            'SW_EXTRANJERO_SIN_DOCUMENTO INTEGER NOT NULL DEFAULT 1',
+          );
+        }
+      },
       onCreate: (Database db, int version) async {
         await db.execute(''' CREATE TABLE CONTADOR_BINS(
               _id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,8 +111,9 @@ class DBProvider extends ChangeNotifier {
               IdEmpresa TEXT,
               Rut TEXT,
               Digito TEXT,
-              Nombre TEXT,           
-              SwSincronizado TEXT
+              Nombre TEXT,
+              SwSincronizado TEXT,
+              SW_EXTRANJERO_SIN_DOCUMENTO INTEGER NOT NULL DEFAULT 1
             )
 
           
@@ -193,6 +204,15 @@ class DBProvider extends ChangeNotifier {
                       ) ''');
           }
 
+          final entregaColumns = await db.rawQuery(
+            'PRAGMA table_info(ENTREGAS)',
+          );
+          final extranjeroColumn =
+              entregaColumns.any(
+                    (column) => column['name'] == 'SW_EXTRANJERO_SIN_DOCUMENTO',
+                  )
+                  ? 'SW_EXTRANJERO_SIN_DOCUMENTO'
+                  : '1';
           await db.transaction((txn) async {
             await txn.execute('''
                   CREATE TABLE ENTREGAS_tmp(
@@ -207,7 +227,8 @@ class DBProvider extends ChangeNotifier {
                     Rut TEXT,
                     Digito TEXT,
                     Nombre TEXT,
-                    SwSincronizado TEXT
+                    SwSincronizado TEXT,
+                    SW_EXTRANJERO_SIN_DOCUMENTO INTEGER NOT NULL DEFAULT 1
                   );
                 ''');
 
@@ -215,11 +236,13 @@ class DBProvider extends ChangeNotifier {
             await txn.execute('''
                   INSERT INTO ENTREGAS_tmp (
                     IdEntrega, IdAndroidCartilla, Qr, Cantidad, Fecha, Hora,
-                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
+                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado,
+                    SW_EXTRANJERO_SIN_DOCUMENTO
                   )
                   SELECT
                     IdEntrega, IdAndroidCartilla, Qr, CAST(Cantidad AS REAL), Fecha, Hora,
-                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado
+                    IdTrabXContratista, IdEmpresa, Rut, Digito, Nombre, SwSincronizado,
+                    $extranjeroColumn
                   FROM ENTREGAS;
                 ''');
 

@@ -644,11 +644,10 @@ void _showSyncProgressDialog(
             content: Consumer<TrabajadorxContratistaProvider>(
               builder: (context, provider, child) {
                 final progress = provider.syncProgress.clamp(0, 1).toDouble();
-                final percentage = (progress * 100).round();
 
                 return SizedBox(
                   width: 260,
-                  height: 150,
+                  height: 120,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -669,15 +668,6 @@ void _showSyncProgressDialog(
                         color: const Color.fromRGBO(36, 99, 174, 1),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        '$percentage%',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'MontserratB',
-                          fontSize: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       Text(
                         provider.syncProgressMessage,
                         textAlign: TextAlign.center,

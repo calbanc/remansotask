@@ -1,17 +1,12 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:verfwork/const/env.dart';
 import 'package:verfwork/response/response.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:http/http.dart' as http;
 
 import '../page/mrz/chile_mrz_parser.dart';
+import 'db_provider.dart';
 
 class AddTrabajadorContratistaProvider extends ChangeNotifier {
   final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
@@ -41,7 +36,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   int _cantidadentregas = 0;
   int get CantidadEntregas => _cantidadentregas;
 
-  bool _validarut = false;
+  bool _validarut = true;
   bool get validarut => _validarut;
 
   bool isValidateForm() {
@@ -75,17 +70,7 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
   }
 
   Future<Database> get database async => _database ??= await initDB();
-  Future<Database> initDB() async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    final path = join(documentsDirectory.path, 'VerfrutContratista.db');
-
-    return await openDatabase(
-      path,
-      version: Env.dbversion,
-      onUpgrade: (Database db, int olverion, int newverion) async {},
-      onOpen: (db) => {},
-    );
-  }
+  Future<Database> initDB() => DBProvider.db.database;
 
   Future<int> insertnewtrabajadorcontratista(Trabajador trabajador) async {
     final db = await database;
@@ -126,8 +111,21 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> existeTrabajadorEnCartilla(String rut, String idcartilla) async {
+    final db = await database;
+    final res = await db.query(
+      'ENTREGAS',
+      columns: ['Rut'],
+      where: 'Rut = ? AND IdAndroidCartilla = ?',
+      whereArgs: [rut, idcartilla],
+      limit: 1,
+    );
+    return res.isNotEmpty;
+  }
+
   Future<int> insertentry(Entrega entry) async {
     final db = await database;
+    entry.swExtranjeroSinDocumento = validarut ? 1 : 0;
     final res = await db.insert('ENTREGAS', entry.toJson());
     return res;
   }
@@ -137,9 +135,11 @@ class AddTrabajadorContratistaProvider extends ChangeNotifier {
     final fechasDisponibles = List.generate(
       2,
       (diasAtras) => DateFormat('dd/MM/yyyy').format(
-        DateTime(now.year, now.month, now.day).subtract(
-          Duration(days: diasAtras),
-        ),
+        DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: diasAtras)),
       ),
     );
 

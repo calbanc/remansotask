@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class Entrega {
   int? identrega;
   String? idcartilla;
@@ -13,6 +11,7 @@ class Entrega {
   String nombre;
   String? IdTrabXContratista;
   String? swsincronizado;
+  int swExtranjeroSinDocumento;
 
   Entrega({
     this.identrega,
@@ -27,35 +26,39 @@ class Entrega {
     this.digito,
     this.IdTrabXContratista,
     this.swsincronizado,
+    this.swExtranjeroSinDocumento = 1,
   });
 
   factory Entrega.fromJson(Map<String, dynamic> json) => Entrega(
-        identrega: json["IdEntrega"],
-        idcartilla: json["IdAndroidCartilla"],
-        qr: json["Qr"],
-        cantidad: json["Cantidad"],
-        fecha: json["Fecha"],
-        hora: json["Hora"],
-        rut: json["Rut"],
-        digito: json["Digito"],
-        nombre: json["Nombre"],
-        idempresa: json["IdEmpresa"],
-        IdTrabXContratista: json["IdTrabXContratista"],
-        swsincronizado: json["SwSincronizado"],
-      );
+    identrega: json["IdEntrega"],
+    idcartilla: json["IdAndroidCartilla"],
+    qr: json["Qr"],
+    cantidad: json["Cantidad"],
+    fecha: json["Fecha"],
+    hora: json["Hora"],
+    rut: json["Rut"],
+    digito: json["Digito"],
+    nombre: json["Nombre"],
+    idempresa: json["IdEmpresa"],
+    IdTrabXContratista: json["IdTrabXContratista"],
+    swsincronizado: json["SwSincronizado"],
+    swExtranjeroSinDocumento:
+        int.tryParse('${json["SW_EXTRANJERO_SIN_DOCUMENTO"]}') ?? 1,
+  );
 
   Map<String, dynamic> toJson() => {
-        "IdEntrega": identrega,
-        "IdAndroidCartilla": idcartilla,
-        "Qr": qr,
-        "Cantidad": cantidad,
-        "Fecha": fecha,
-        "Hora": hora,
-        "Rut": rut,
-        "Digito": digito,
-        "Nombre": nombre,
-        "IdEmpresa": idempresa,
-        "IdTrabXContratista": IdTrabXContratista,
-        "SwSincronizado": swsincronizado,
-      };
+    "IdEntrega": identrega,
+    "IdAndroidCartilla": idcartilla,
+    "Qr": qr,
+    "Cantidad": cantidad,
+    "Fecha": fecha,
+    "Hora": hora,
+    "Rut": rut,
+    "Digito": digito,
+    "Nombre": nombre,
+    "IdEmpresa": idempresa,
+    "IdTrabXContratista": IdTrabXContratista,
+    "SwSincronizado": swsincronizado,
+    "SW_EXTRANJERO_SIN_DOCUMENTO": swExtranjeroSinDocumento,
+  };
 }

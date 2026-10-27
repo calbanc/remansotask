@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
@@ -12,9 +11,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 
@@ -34,7 +31,6 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       GlobalKey<DropdownSearchState>();
   GlobalKey<DropdownSearchState> formkeylistacartilla =
       GlobalKey<DropdownSearchState>();
-
 
   int _tabIndex = 0;
   int get tabIndex => _tabIndex;
@@ -293,7 +289,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
   }
 
   TrabajadorxContratistaProvider() {
-    DBProvider.db.initDB();
+    DBProvider.db.database;
     initLanguages();
     getcartillasdisponibles();
   }
@@ -304,17 +300,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     _flutterTts.speak(text);
   }
 
-  Future<Database> initDB() async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    final path = join(documentsDirectory.path, 'VerfrutContratista.db');
-
-    return await openDatabase(
-      path,
-      version: Env.dbversion,
-      onUpgrade: (Database db, int olverion, int newverion) async {},
-      onOpen: (db) => {},
-    );
-  }
+  Future<Database> initDB() => DBProvider.db.database;
 
   Future<List<Envase>> getenvase(int idempresa) async {
     final Map<String, dynamic> data = {'IdEmpresa': idempresa};
@@ -397,6 +383,7 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
       "Rut": entrega.rut,
       "IdTrabajadorXContratista": entrega.idtrabajadorxcontratista,
       "Digito": entrega.digito,
+      "SW_EXTRANJERO_SIN_DOCUMENTO": entrega.swExtranjeroSinDocumento,
     };
     String parametros = json.encode(data);
     var url = Uri.parse(Env.baseUrl + '/androidcartilladetalle/save_new');
@@ -423,9 +410,11 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
     final fechasDisponibles = List.generate(
       2,
       (diasAtras) => DateFormat('dd/MM/yyyy').format(
-        DateTime(now.year, now.month, now.day).subtract(
-          Duration(days: diasAtras),
-        ),
+        DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: diasAtras)),
       ),
     );
     final db = await database;
@@ -1007,6 +996,8 @@ class TrabajadorxContratistaProvider extends ChangeNotifier {
         idtrabajadorxcontratista: res[index]['IdTrabXContratista'],
         digito: res[index]['Digito'],
         rut: res[index]['Rut'],
+        swExtranjeroSinDocumento:
+            int.tryParse('${res[index]['SW_EXTRANJERO_SIN_DOCUMENTO']}') ?? 1,
       ),
     );
   }
