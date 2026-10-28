@@ -138,7 +138,7 @@ class AddCartilla extends StatelessWidget {
               child: Container(
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(18)),
-                  color: Color.fromRGBO(230, 236, 245, 1),
+                  color: Color.fromRGBO(232, 245, 233, 1),
                 ),
                 child: ListTile(
                   title: const Text(
@@ -147,7 +147,7 @@ class AddCartilla extends StatelessWidget {
                   ),
                   trailing: Checkbox(
                     fillColor: MaterialStateProperty.resolveWith((states) {
-                      return Color.fromRGBO(37, 98, 173, 1);
+                      return Color.fromRGBO(46, 125, 50, 1);
                     }),
                     value: provider.swunoauno,
                     onChanged: (value) => {provider.swunoauno = value!},
@@ -162,7 +162,7 @@ class AddCartilla extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(36, 99, 174, 1),
+                    backgroundColor: Color.fromRGBO(46, 125, 50, 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12), // <-- Radius
                     ),

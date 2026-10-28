@@ -201,7 +201,7 @@ class _dataServerScreen extends StatelessWidget {
             height: MediaQuery.of(context).size.height * 0.18,
             width: 190,
             child: Card(
-              color: Color.fromRGBO(36, 99, 174, 1),
+              color: Color.fromRGBO(46, 125, 50, 1),
               shape: RoundedRectangleBorder(
                 side: const BorderSide(
                   width: 1,

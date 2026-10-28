@@ -111,7 +111,7 @@ class _optionsScreen extends StatelessWidget {
                   height: 70,
 
                   decoration: BoxDecoration(
-                    color: Color.fromRGBO(36, 99, 174, 0.04),
+                    color: Color.fromRGBO(46, 125, 50, 0.04),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -121,12 +121,12 @@ class _optionsScreen extends StatelessWidget {
                         width: 80,
                         height: 50,
                         decoration: const BoxDecoration(
-                          color: Color.fromRGBO(36, 99, 174, 0.2),
+                          color: Color.fromRGBO(46, 125, 50, 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.storage_outlined,
-                          color: Color.fromRGBO(36, 99, 174, 1),
+                          color: Color.fromRGBO(46, 125, 50, 1),
                         ),
                       ),
                       Text(
@@ -161,7 +161,7 @@ class _optionsScreen extends StatelessWidget {
                   height: 70,
 
                   decoration: BoxDecoration(
-                    color: Color.fromRGBO(36, 99, 174, 0.04),
+                    color: Color.fromRGBO(46, 125, 50, 0.04),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -171,7 +171,7 @@ class _optionsScreen extends StatelessWidget {
                         width: 80,
                         height: 50,
                         decoration: const BoxDecoration(
-                          color: Color.fromRGBO(36, 99, 174, 0.2),
+                          color: Color.fromRGBO(46, 125, 50, 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Stack(
@@ -207,7 +207,7 @@ class _optionsScreen extends StatelessWidget {
                   height: 70,
 
                   decoration: BoxDecoration(
-                    color: Color.fromRGBO(36, 99, 174, 0.04),
+                    color: Color.fromRGBO(46, 125, 50, 0.04),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -217,12 +217,12 @@ class _optionsScreen extends StatelessWidget {
                         width: 80,
                         height: 50,
                         decoration: const BoxDecoration(
-                          color: Color.fromRGBO(36, 99, 174, 0.2),
+                          color: Color.fromRGBO(46, 125, 50, 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.add,
-                          color: Color.fromRGBO(36, 99, 174, 1),
+                          color: Color.fromRGBO(46, 125, 50, 1),
                         ),
                       ),
                       Text(

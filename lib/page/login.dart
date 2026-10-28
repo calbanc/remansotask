@@ -150,8 +150,8 @@ class _Login extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color.fromRGBO(36, 99, 175, 1),
-                        Color.fromRGBO(11, 52, 86, 1),
+                        Color.fromRGBO(46, 125, 50, 1),
+                        Color.fromRGBO(27, 94, 32, 1),
                       ],
                     ),
                     borderRadius: BorderRadius.only(
@@ -290,9 +290,9 @@ class _Login extends StatelessWidget {
                                                           ElevatedButton.styleFrom(
                                                             backgroundColor:
                                                                 Color.fromRGBO(
-                                                                  36,
-                                                                  99,
-                                                                  175,
+                                                                  46,
+                                                                  125,
+                                                                  50,
                                                                   1,
                                                                 ),
                                                           ),
@@ -379,9 +379,9 @@ class _Login extends StatelessWidget {
                                                   style: ElevatedButton.styleFrom(
                                                     backgroundColor:
                                                         const Color.fromRGBO(
-                                                          59,
-                                                          131,
-                                                          216,
+                                                          56,
+                                                          142,
+                                                          60,
                                                           1,
                                                         ),
                                                     shape: RoundedRectangleBorder(
@@ -511,18 +511,18 @@ class _Login extends StatelessWidget {
                   },
                   inputDecorationTheme: const InputDecorationTheme(
                     filled: true,
-                    fillColor: Color.fromRGBO(230, 236, 245, 1),
+                    fillColor: Color.fromRGBO(232, 245, 233, 1),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(18)),
                       borderSide: BorderSide(
-                        color: Color.fromRGBO(230, 236, 245, 1),
+                        color: Color.fromRGBO(232, 245, 233, 1),
                         width: 0,
                       ),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(18)),
                       borderSide: BorderSide(
-                        color: Color.fromRGBO(230, 236, 245, 1),
+                        color: Color.fromRGBO(232, 245, 233, 1),
                         width: 1,
                       ),
                     ),
@@ -559,7 +559,7 @@ class _Login extends StatelessWidget {
                   width: MediaQuery.of(context).size.width * 0.8,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                      backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12), // <-- Radius
                       ),

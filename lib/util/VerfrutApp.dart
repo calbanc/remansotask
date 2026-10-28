@@ -34,8 +34,8 @@ class VerfrutApp {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromRGBO(36, 99, 175, 1),
-              Color.fromRGBO(11, 52, 86, 1),
+              Color.fromRGBO(46, 125, 50, 1),
+              Color.fromRGBO(27, 94, 32, 1),
             ],
           ),
         ),
@@ -59,11 +59,11 @@ class VerfrutApp {
       baseStyle: const TextStyle(fontFamily: 'MontserratR', fontSize: 12),
       decoration: InputDecoration(
         filled: true,
-        fillColor: const Color.fromRGBO(230, 236, 245, 1),
+        fillColor: const Color.fromRGBO(232, 245, 233, 1),
         enabledBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(18)),
           borderSide: BorderSide(
-            color: Color.fromRGBO(230, 236, 245, 1),
+            color: Color.fromRGBO(232, 245, 233, 1),
             width: 0,
           ),
         ),
@@ -79,17 +79,17 @@ class VerfrutApp {
   }) {
     return InputDecoration(
       filled: true,
-      fillColor: const Color.fromRGBO(230, 236, 245, 1),
+      fillColor: const Color.fromRGBO(232, 245, 233, 1),
       enabledBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(18)),
         borderSide: BorderSide(
-          color: Color.fromRGBO(230, 236, 245, 1),
+          color: Color.fromRGBO(232, 245, 233, 1),
           width: 0,
         ),
       ),
       labelStyle: const TextStyle(fontFamily: 'MontserratR', fontSize: 12),
       labelText: label,
-      prefixIcon: Icon(prefixicon, color: Color.fromRGBO(36, 99, 174, 1)),
+      prefixIcon: Icon(prefixicon, color: Color.fromRGBO(46, 125, 50, 1)),
     );
   }
 
@@ -105,7 +105,7 @@ class VerfrutApp {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icono, size: 60, color: Colors.blue),
+            Icon(icono, size: 60, color: Colors.green),
             Text(mensajecontent!, style: TextStyle(fontFamily: 'MontserratR')),
           ],
         ),
@@ -181,7 +181,7 @@ class VerfrutApp {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icono, size: 60, color: Colors.blue),
+            Icon(icono, size: 60, color: Colors.green),
             Text(
               mensajecontent!,
               style: TextStyle(fontFamily: 'MontserratR', fontSize: 15),

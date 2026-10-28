@@ -58,7 +58,7 @@ class _detailworker extends StatelessWidget {
                         fontFamily: 'MontserratB',
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromRGBO(36, 99, 174, 1),
+                        color: Color.fromRGBO(46, 125, 50, 1),
                       ),
                     ),
                   ),
@@ -72,7 +72,7 @@ class _detailworker extends StatelessWidget {
                     child: Container(
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(230, 236, 245, 1),
+                        color: Color.fromRGBO(232, 245, 233, 1),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Row(
@@ -86,7 +86,7 @@ class _detailworker extends StatelessWidget {
                                   padding: EdgeInsets.only(right: 8),
                                   child: Icon(
                                     Icons.home_outlined,
-                                    color: Color.fromRGBO(36, 99, 174, 1),
+                                    color: Color.fromRGBO(46, 125, 50, 1),
                                   ),
                                 ),
                                 Text(
@@ -117,7 +117,7 @@ class _detailworker extends StatelessWidget {
                     child: Container(
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(230, 236, 245, 1),
+                        color: Color.fromRGBO(232, 245, 233, 1),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Row(
@@ -130,7 +130,7 @@ class _detailworker extends StatelessWidget {
                                 Padding(
                                   padding: EdgeInsets.only(right: 8),
                                   child: Image(
-                                    color: Color.fromRGBO(36, 99, 174, 1),
+                                    color: Color.fromRGBO(46, 125, 50, 1),
                                     image: AssetImage('assets/labor.png'),
                                     width: 30,
                                   ),
@@ -163,7 +163,7 @@ class _detailworker extends StatelessWidget {
                     child: Container(
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(230, 236, 245, 1),
+                        color: Color.fromRGBO(232, 245, 233, 1),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Row(
@@ -176,7 +176,7 @@ class _detailworker extends StatelessWidget {
                                 Padding(
                                   padding: EdgeInsets.only(right: 8),
                                   child: Image(
-                                    color: Color.fromRGBO(36, 99, 174, 1),
+                                    color: Color.fromRGBO(46, 125, 50, 1),
                                     image: AssetImage('assets/boxex.png'),
                                     width: 30,
                                   ),
@@ -232,7 +232,7 @@ class _datospersonales extends StatelessWidget {
               fontFamily: 'MontserratB',
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(36, 99, 174, 1),
+              color: Color.fromRGBO(46, 125, 50, 1),
             ),
           ),
         ),
@@ -369,7 +369,7 @@ class _datospersonales extends StatelessWidget {
             ),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(36, 99, 174, 1),
+                backgroundColor: Color.fromRGBO(46, 125, 50, 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // <-- Radius
                 ),

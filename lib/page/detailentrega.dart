@@ -79,7 +79,7 @@ class _detailentregaState extends State<_detailentrega> {
           'Detalle Entrega',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.green,
         iconTheme: IconThemeData(color: Colors.white),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new),

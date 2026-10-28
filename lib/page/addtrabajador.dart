@@ -116,15 +116,15 @@ class _addTrabajador extends StatelessWidget {
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color.fromRGBO(
-                              36,
-                              99,
-                              174,
+                              46,
+                              125,
+                              50,
                               1,
                             ),
                             backgroundColor: const Color.fromRGBO(
-                              230,
-                              236,
+                              232,
                               245,
+                              233,
                               1,
                             ),
                             minimumSize: const Size.fromHeight(48),
@@ -133,7 +133,7 @@ class _addTrabajador extends StatelessWidget {
                               vertical: 14,
                             ),
                             side: const BorderSide(
-                              color: Color.fromRGBO(36, 99, 174, 1),
+                              color: Color.fromRGBO(46, 125, 50, 1),
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -292,7 +292,7 @@ class _addTrabajador extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(36, 99, 174, 1),
+                backgroundColor: Color.fromRGBO(46, 125, 50, 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // <-- Radius
                 ),

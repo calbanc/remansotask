@@ -19,10 +19,17 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'FrutApp Job',
+      title: 'Rvd Task',
       initialRoute: 'login',
       routes: {'login': (_) => Login()},
-      theme: ThemeData(primaryColor: Colors.green[900]),
+      theme: ThemeData(
+        primaryColor: Colors.green[800],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.green[800]!,
+          primary: Colors.green[800]!,
+          secondary: Colors.green[700]!,
+        ),
+      ),
     );
   }
 }

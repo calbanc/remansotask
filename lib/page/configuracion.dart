@@ -16,7 +16,7 @@ class Configuracion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.green,
         iconTheme: IconThemeData(color: Colors.white),
         title: Text('Configuracion',style: TextStyle(color: Colors.white),),
         centerTitle: true,
@@ -62,7 +62,7 @@ class _ListOptions extends StatelessWidget {
               ListTile(
                 title: Text('Cartillas',
                   style: TextStyle(
-                    color: Colors.blue,
+                    color: Colors.green,
                     fontWeight: FontWeight.bold
                     ),),
                 subtitle: Text('Ver todas las cartillas ingresadas',style: TextStyle(fontStyle: FontStyle.italic),),
@@ -76,7 +76,7 @@ class _ListOptions extends StatelessWidget {
               ListTile(
                 title: Text('Version de App',
                   style: TextStyle(
-                    color: Colors.blue,
+                    color: Colors.green,
                     fontWeight: FontWeight.bold
                     ),),
                 subtitle: Text('Ver codigos de app',style: TextStyle(fontStyle: FontStyle.italic),),
@@ -103,7 +103,7 @@ class _ListOptions extends StatelessWidget {
          *//*     ListTile(
                 title: Text('Tiempo de Capturas',
                   style: TextStyle(
-                    color: Colors.blue,
+                    color: Colors.green,
                     fontWeight: FontWeight.bold
                     ),),
                 subtitle: Text('Configura el tiempo entre scan y scan',style: TextStyle(fontStyle: FontStyle.italic),),

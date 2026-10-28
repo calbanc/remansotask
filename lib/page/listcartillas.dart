@@ -34,7 +34,7 @@ class _ListCartillaState extends State<ListCartilla> {
     final cartillaprovider = Provider.of<CartillasProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.green,
         iconTheme: IconThemeData(color: Colors.white),
         title: Text(
           'Cartillas Registradas',

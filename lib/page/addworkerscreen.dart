@@ -77,7 +77,7 @@ class addworkerScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 37),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(36, 99, 174, 1),
+                    backgroundColor: Color.fromRGBO(46, 125, 50, 1),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(width: 0.5),
                       borderRadius: BorderRadius.circular(12), // <-- Radius

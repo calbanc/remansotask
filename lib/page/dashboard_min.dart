@@ -105,7 +105,7 @@ class DashboardMain extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: VerfrutApp.Verfrutapp(
-          title: 'FrutApp Job',
+          title: 'Rvd Task',
           action: IconButton(
             onPressed: () async {
               Future.microtask(
@@ -137,7 +137,7 @@ class DashboardMain extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                        backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
@@ -319,7 +319,7 @@ class DashboardMain extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color.fromRGBO(36, 99, 174, 1),
+                        backgroundColor: Color.fromRGBO(46, 125, 50, 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
@@ -385,9 +385,9 @@ class DashboardMain extends StatelessWidget {
                                             child: ElevatedButton(
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: Color.fromRGBO(
-                                                  36,
-                                                  99,
-                                                  175,
+                                                  46,
+                                                  125,
+                                                  50,
                                                   1,
                                                 ),
                                               ),
@@ -565,9 +565,9 @@ class DashboardMain extends StatelessWidget {
                         }
                       },
                       indicatorSize: TabBarIndicatorSize.tab,
-                      indicatorColor: const Color.fromRGBO(36, 99, 174, 1),
+                      indicatorColor: const Color.fromRGBO(46, 125, 50, 1),
                       indicatorWeight: 3,
-                      labelColor: const Color.fromRGBO(36, 99, 174, 1),
+                      labelColor: const Color.fromRGBO(46, 125, 50, 1),
                       unselectedLabelColor: Colors.black87,
                       dividerColor: Colors.transparent,
                       tabs: [
@@ -668,8 +668,8 @@ void _showSyncProgressDialog(
                       LinearProgressIndicator(
                         minHeight: 8,
                         value: progress,
-                        backgroundColor: const Color.fromRGBO(230, 236, 245, 1),
-                        color: const Color.fromRGBO(36, 99, 174, 1),
+                        backgroundColor: const Color.fromRGBO(232, 245, 233, 1),
+                        color: const Color.fromRGBO(46, 125, 50, 1),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -737,7 +737,7 @@ class _bottombar extends StatelessWidget {
                   options: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                        backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12), // <-- Radius
                         ),
@@ -890,7 +890,7 @@ class _cartillasCuarteles extends StatelessWidget {
               width: 190,
               child: Card(
                 color:
-                    isSelected ? Color.fromRGBO(36, 99, 174, 1) : Colors.white,
+                    isSelected ? Color.fromRGBO(46, 125, 50, 1) : Colors.white,
                 shape: RoundedRectangleBorder(
                   side: const BorderSide(
                     width: 1,
@@ -937,7 +937,7 @@ class _cartillasCuarteles extends StatelessWidget {
                           color:
                               isSelected
                                   ? Colors.red
-                                  : Color.fromRGBO(36, 99, 174, 1),
+                                  : Color.fromRGBO(46, 125, 50, 1),
                         ),
                       ),
                       Text(
@@ -964,7 +964,7 @@ class _cartillasCuarteles extends StatelessWidget {
                           color:
                               isSelected
                                   ? Colors.white
-                                  : Color.fromRGBO(36, 99, 174, 1),
+                                  : Color.fromRGBO(46, 125, 50, 1),
                         ),
                       ),
                     ],
@@ -1065,7 +1065,7 @@ class _listadoentregas extends StatelessWidget {
                 PopupMenuButton(
                   child: const Icon(
                     Icons.more_vert,
-                    color: Color.fromRGBO(36, 99, 174, 1),
+                    color: Color.fromRGBO(46, 125, 50, 1),
                   ),
                   onSelected: (value) async {
                     if (value == "lessentry") {
@@ -1383,7 +1383,7 @@ insertarentrega(
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // <-- Radius
                 ),

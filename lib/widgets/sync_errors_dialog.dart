@@ -22,7 +22,7 @@ class SyncErrorsDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            foregroundColor: const Color.fromRGBO(36, 99, 174, 1),
+            foregroundColor: const Color.fromRGBO(46, 125, 50, 1),
           ),
           child: const Text(
             'Aceptar',

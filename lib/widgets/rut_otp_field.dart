@@ -219,7 +219,7 @@ class _RutOtpFieldState extends State<RutOtpField> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(9),
-            borderSide: const BorderSide(color: Color.fromRGBO(36, 99, 174, 1)),
+            borderSide: const BorderSide(color: Color.fromRGBO(46, 125, 50, 1)),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(9),

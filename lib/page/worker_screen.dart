@@ -49,7 +49,7 @@ class workerScreen extends StatelessWidget {
             width: MediaQuery.of(context).size.width * 0.9,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromRGBO(59, 131, 216, 1),
+                backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12), // <-- Radius
                 ),
@@ -159,7 +159,7 @@ class _listadotrabajadores extends StatelessWidget {
                       child: PopupMenuButton(
                         child: const Icon(
                           Icons.more_vert,
-                          color: Color.fromRGBO(36, 99, 174, 1),
+                          color: Color.fromRGBO(46, 125, 50, 1),
                         ),
                         onSelected: (value) async {
                           if (value == "lessentry") {
